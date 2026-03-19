@@ -109,16 +109,38 @@ Write a single Threads post (150-300 characters). Pick the format that fits best
 
 Output only the post text, nothing else."""
 
+    draft = _gemini(prompt)
+    return refine_draft(draft)
+
+
+def _gemini(prompt, temperature=0.8):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
     payload = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": 500, "temperature": 0.8}
+        "generationConfig": {"maxOutputTokens": 500, "temperature": temperature}
     }).encode("utf-8")
     req = urllib.request.Request(url, data=payload, method="POST")
     req.add_header("Content-Type", "application/json")
     with urllib.request.urlopen(req, timeout=20) as r:
         result = json.loads(r.read())
     return result["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+
+def refine_draft(draft):
+    prompt = f"""You are a Threads engagement editor. Your job is to make this post land harder.
+
+Original post:
+\"\"\"{draft}\"\"\"
+
+Rules:
+- Rewrite the opening line to create more tension or curiosity — it must stop the scroll
+- Tighten every line: cut filler, shorten sentences, remove anything that doesn't earn its place
+- Keep the core insight and voice intact — do NOT change the meaning or make it sound generic
+- Stay under 300 characters total
+- No emojis, no hashtags, no LinkedIn tone
+
+Output only the rewritten post, nothing else."""
+    return _gemini(prompt, temperature=0.7)
 
 
 def _threads_post(url, data):
