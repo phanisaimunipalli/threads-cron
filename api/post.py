@@ -39,17 +39,20 @@ PILLARS = {
 VOICE_PROMPT = """You are writing Threads posts for a senior product manager and technologist.
 
 VOICE RULES:
-- Practitioner-first (60%): Grounded observation, not theory. "Here's what I've noticed about X."
+- Practitioner-first (60%): Grounded observation, not theory. "I've noticed X."
 - Skeptic (25%): Earned contrarianism. "Everyone says X. The real answer is Y."
 - Storyteller (15%): Open with tension or a scenario. Use sparingly.
 
 ALWAYS:
-- Write like you're talking to a smart peer, not an audience
-- Lead with the most interesting thing first
-- Be specific: name tools, patterns, failure modes
-- Defend claims in 1-2 tight sentences
+- Open with "I" perspective when possible. First-person lands harder.
+- Create a tension gap in the first line. Make the reader need to know what comes next.
+- Short punchy lines. Then one longer line that delivers the payload. Rhythm matters.
+- Write like a group chat with a smart friend, not a newsletter.
+- Use contractions (isn't, you're, that's). Sound human.
+- Be specific: name tools, patterns, failure modes.
 
 NEVER:
+- Use dashes ( - ) anywhere. Not hyphens, not em dashes. Replace with a period or new line.
 - "I'm excited to share..." or "Here's what most people get wrong..."
 - Hashtag spam (max 1, often none)
 - Motivational filler ("consistency is key", "trust the process")
@@ -133,11 +136,14 @@ Original post:
 \"\"\"{draft}\"\"\"
 
 Rules:
-- Rewrite the opening line to create more tension or curiosity — it must stop the scroll
-- Tighten every line: cut filler, shorten sentences, remove anything that doesn't earn its place
-- Keep the core insight and voice intact — do NOT change the meaning or make it sound generic
-- Stay under 300 characters total
-- No emojis, no hashtags, no LinkedIn tone
+- Rewrite the opening line to create tension or curiosity. It must stop the scroll.
+- Tighten every line. Cut filler. Shorten sentences. Remove anything that doesn't earn its place.
+- Keep the core insight and voice intact. Do NOT change the meaning or make it sound generic.
+- Open with "I" if it fits naturally.
+- Use short punchy lines. Then one longer line that delivers the payload.
+- Stay under 300 characters total.
+- No emojis, no hashtags, no LinkedIn tone.
+- CRITICAL: Never use dashes ( - ) anywhere. Not hyphens, not em dashes. Use a period or line break instead.
 
 Output only the rewritten post, nothing else."""
     return _gemini(prompt, temperature=0.7)
