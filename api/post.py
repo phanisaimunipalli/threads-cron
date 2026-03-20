@@ -30,11 +30,11 @@ CRON_SECRET     = os.environ.get("CRON_SECRET", "")
 PILLARS = {
     0: {"name": "AI & Agents",        "focus": "Real agent behavior, failure modes, what's actually useful vs. hype"},
     1: {"name": "Product Management", "focus": "Decisions, prioritization, what data tells you vs. doesn't"},
-    2: {"name": "Startups",           "focus": "Founder-PM dynamics, build decisions, what scales vs. doesn't"},
-    3: {"name": "Technology",         "focus": "Tools, architectures, developer observations, infra patterns"},
-    4: {"name": "Intersection",       "focus": "Where AI meets PM meets product decisions"},
-    5: {"name": "Contrarian Take",    "focus": "One thing the internet gets wrong this week"},
-    6: {"name": "Long-form Thread",   "focus": "Deep-dive on one important topic, 5-10 posts"},
+    2: {"name": "AI & Agents",        "focus": "Real agent behavior, failure modes, what's actually useful vs. hype"},
+    3: {"name": "Product Management", "focus": "Decisions, prioritization, what data tells you vs. doesn't"},
+    4: {"name": "Intersection",       "focus": "Where AI meets PM meets product decisions — the only place both worlds collide"},
+    5: {"name": "Intersection",       "focus": "Where AI meets PM meets product decisions — the only place both worlds collide"},
+    6: {"name": "Long-form Thread",   "focus": "Deep-dive on one AI or PM topic, 5-10 posts, each standing alone"},
 }
 
 VOICE_PROMPT = """You are writing Threads posts for a senior product manager and technologist.
@@ -121,6 +121,29 @@ def fetch_hn_headlines(n=5):
         return []
 
 
+def fetch_techcrunch_ai(n=5):
+    """Pull latest AI headlines from TechCrunch RSS."""
+    try:
+        url = "https://techcrunch.com/category/artificial-intelligence/feed/"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            content = r.read().decode("utf-8")
+        import re
+        titles = re.findall(r"<title><!\[CDATA\[(.*?)\]\]></title>", content)
+        titles = [t for t in titles if "TechCrunch" not in t]
+        return titles[:n]
+    except Exception:
+        return []
+
+
+def fetch_all_sources():
+    """Combine HN + TechCrunch AI headlines."""
+    hn = fetch_hn_headlines(4)
+    tc = fetch_techcrunch_ai(4)
+    combined = tc + hn  # TechCrunch first — more AI-specific
+    return combined[:8]
+
+
 def get_today_pillar():
     pst = timezone(timedelta(hours=-8))
     weekday = datetime.now(pst).weekday()
@@ -147,7 +170,7 @@ Output only the rewritten post, nothing else."""
 
 
 def generate_content(pillar, post_number=0):
-    headlines = fetch_hn_headlines()
+    headlines = fetch_all_sources()
     headlines_str = "\n".join(f"- {h}" for h in headlines) if headlines else "No headlines available."
     fmt = FORMATS[post_number % len(FORMATS)]
 
@@ -156,11 +179,13 @@ def generate_content(pillar, post_number=0):
 Today's content pillar: {pillar['name']}
 Focus: {pillar['focus']}
 
-Recent tech/AI headlines for context (use as inspiration, not to summarize):
+Recent AI + tech headlines (use as inspiration, not to summarize):
 {headlines_str}
 
 Format: {fmt['name']}
 {fmt['instruction']}
+
+DATA RULE: If you can ground the post in a real statistic, percentage, dollar figure, or timeframe, do it. Numbers make claims credible and stoppable. Example: "67% of AI projects fail in production" beats "most AI projects fail". Only use data you're confident is accurate.
 
 CRITICAL: Never use dashes ( - ) anywhere in the post.
 Output only the post text, nothing else."""
