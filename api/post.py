@@ -93,9 +93,35 @@ def fetch_hn_headlines(n=5):
         return []
 
 
+FORMATS = [
+    {
+        "name": "short_punchy",
+        "instruction": "Write a SHORT post (100-200 characters). One bold claim. One or two tight sentences max. Each line hits hard. No filler."
+    },
+    {
+        "name": "dense_long",
+        "instruction": "Write a LONGER dense post (300-500 characters). No line breaks. One continuous paragraph. Pack in the insight. Write like you're explaining something important to a smart friend in a message. No headers, no bullets, no formatting."
+    },
+    {
+        "name": "tension_story",
+        "instruction": "Open with a scene or a moment. One sentence. Then unpack what it revealed. 3-5 short lines. End with the insight, not a call to action."
+    },
+    {
+        "name": "contrarian",
+        "instruction": "Start with the thing everyone believes. Then immediately contradict it with what you actually know. Keep it under 250 characters. No hedging."
+    },
+]
+
+
 def generate_content(pillar):
+    import hashlib
+    from datetime import date
     headlines = fetch_hn_headlines()
     headlines_str = "\n".join(f"- {h}" for h in headlines) if headlines else "No headlines available."
+
+    # Rotate format daily based on date so each day tries a different one
+    day_index = int(hashlib.md5(str(date.today()).encode()).hexdigest(), 16) % len(FORMATS)
+    fmt = FORMATS[day_index]
 
     prompt = f"""{VOICE_PROMPT}
 
@@ -105,15 +131,15 @@ Focus: {pillar['focus']}
 Recent tech/AI headlines for context (use as inspiration, not to summarize):
 {headlines_str}
 
-Write a single Threads post (150-300 characters). Pick the format that fits best:
-- Hot take: bold claim + 1-2 sentence defense
-- Learning: observation → why it matters → implication
-- Comparison: common approach vs. what actually breaks
+Format for today: {fmt['name']}
+{fmt['instruction']}
 
+CRITICAL: Never use dashes ( - ) anywhere in the post.
 Output only the post text, nothing else."""
 
     draft = _gemini(prompt)
-    return refine_draft(draft)
+    refined = refine_draft(draft)
+    return refined, fmt["name"]
 
 
 def _gemini(prompt, temperature=0.8):
@@ -188,12 +214,13 @@ class handler(BaseHTTPRequestHandler):
 
         try:
             pillar = get_today_pillar()
-            content = generate_content(pillar)
+            content, fmt_name = generate_content(pillar)
             thread_id = post_to_threads(content)
 
             self._respond(200, {
                 "ok": True,
                 "pillar": pillar["name"],
+                "format": fmt_name,
                 "thread_id": thread_id,
                 "content": content,
             })
