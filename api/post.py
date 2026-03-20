@@ -1,12 +1,13 @@
 """
 Vercel serverless function — generates and posts to Threads.
 Triggered 3x/day by GitHub Actions at 7:30 AM, 12:30 PM, 6:30 PM PST.
+Strategy: Mental Model + Real Company Story + Data. One week test.
 """
 
 import os
 import json
 import time
-import hashlib
+import re
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -25,83 +26,193 @@ THREADS_API     = "https://graph.threads.net/v1.0"
 CRON_SECRET     = os.environ.get("CRON_SECRET", "")
 
 
-# ── Pillars ───────────────────────────────────────────────────────────────────
+# ── Mental Models Bank ────────────────────────────────────────────────────────
+# Each entry: model name, what it is, company that used it, what they did, outcome/data
 
-PILLARS = {
-    0: {"name": "AI & Agents",        "focus": "Real agent behavior, failure modes, what's actually useful vs. hype"},
-    1: {"name": "Product Management", "focus": "Decisions, prioritization, what data tells you vs. doesn't"},
-    2: {"name": "AI & Agents",        "focus": "Real agent behavior, failure modes, what's actually useful vs. hype"},
-    3: {"name": "Product Management", "focus": "Decisions, prioritization, what data tells you vs. doesn't"},
-    4: {"name": "Intersection",       "focus": "Where AI meets PM meets product decisions — the only place both worlds collide"},
-    5: {"name": "Intersection",       "focus": "Where AI meets PM meets product decisions — the only place both worlds collide"},
-    6: {"name": "Long-form Thread",   "focus": "Deep-dive on one AI or PM topic, 5-10 posts, each standing alone"},
-}
-
-VOICE_PROMPT = """You are writing Threads posts for a senior product manager and technologist.
-
-VOICE RULES:
-- Practitioner-first (60%): Grounded observation, not theory. "I've noticed X."
-- Skeptic (25%): Earned contrarianism. "Everyone says X. The real answer is Y."
-- Storyteller (15%): Open with tension or a scenario. Use sparingly.
-
-ALWAYS:
-- Open with "I" perspective when possible. First-person lands harder.
-- Create a tension gap in the first line. Make the reader need to know what comes next.
-- Write like a group chat with a smart friend, not a newsletter.
-- Use contractions (isn't, you're, that's). Sound human.
-- Be specific: name tools, patterns, failure modes.
-
-NEVER:
-- Use dashes ( - ) anywhere. Not hyphens, not em dashes. Use a period or new line instead.
-- "I'm excited to share..." or "Here's what most people get wrong..."
-- Hashtag spam (max 1, often none)
-- Motivational filler ("consistency is key", "trust the process")
-- Reference specific employers, internal data, or scale numbers
-- Words like "game-changer", "revolutionary", "unlock", "supercharge"
-- Sound like a LinkedIn post or newsletter
-
-FORMAT:
-- 150-300 characters, line breaks for readability
-- No emojis unless they genuinely add meaning (rare)"""
-
-FORMATS = [
+MENTAL_MODELS = [
     {
-        "name": "short_punchy",
-        "instruction": "Write a SHORT post (100-200 characters). One bold claim. Two tight sentences max. Each line hits hard. No filler."
+        "model": "Working Backwards",
+        "what": "Write the press release before writing any code. Forces clarity on who benefits and why.",
+        "company": "Amazon",
+        "story": "Every feature starts with a fake press release. The team that skipped it built the Fire Phone. The teams that didn't built Prime and AWS.",
+        "data": "AWS grew to $90B revenue. Fire Phone was discontinued in 12 months."
     },
     {
-        "name": "dense_long",
-        "instruction": "Write a LONGER dense post (300-500 characters). No line breaks. One continuous paragraph. Pack in the insight. Write like you're explaining something to a smart friend in a message."
+        "model": "Two-Pizza Rule",
+        "what": "If two pizzas can't feed the team, it's too big. Small teams ship faster and own more.",
+        "company": "Amazon",
+        "story": "Bezos broke up large teams into units of 6 to 10. Each team owns one service end to end. No coordination tax.",
+        "data": "Amazon deploys code every 11 seconds. Most companies deploy once a week."
     },
     {
-        "name": "tension_story",
-        "instruction": "Open with a scene or a moment. One sentence. Then unpack what it revealed. 3-5 short lines. End with the insight, not a call to action."
+        "model": "Regret Minimization Framework",
+        "what": "Imagine yourself at 80 looking back. Would you regret not doing this?",
+        "company": "Amazon",
+        "story": "Bezos used this to quit his hedge fund job in 1994 and start Amazon. He knew at 80 he wouldn't regret trying. He would regret not trying.",
+        "data": "Amazon started in a garage. It's now worth over $1.8 trillion."
     },
     {
-        "name": "contrarian",
-        "instruction": "State the thing everyone believes. Then immediately contradict it with what you actually know. Keep it under 250 characters. No hedging."
+        "model": "Jobs To Be Done",
+        "what": "People don't buy products. They hire them to do a job. The job doesn't change. The product does.",
+        "company": "Intercom",
+        "story": "Intercom mapped why people actually used their chat tool. The job wasn't 'chat'. It was 'close a deal before the prospect leaves the page'. That insight reshaped their entire product.",
+        "data": "Intercom grew to $150M ARR before pivoting to AI-first."
+    },
+    {
+        "model": "Chaos Engineering",
+        "what": "Intentionally break your system in production to find weaknesses before they find you.",
+        "company": "Netflix",
+        "story": "Netflix built Chaos Monkey, a tool that randomly kills production servers. Their engineers had to build systems resilient enough to survive it. Most companies only find these failures when customers do.",
+        "data": "Netflix achieves 99.99% uptime serving 260 million subscribers globally."
+    },
+    {
+        "model": "Minimum Viable Product",
+        "what": "The smallest thing you can build that tests your most important assumption.",
+        "company": "Dropbox",
+        "story": "Drew Houston didn't build Dropbox first. He made a 3-minute demo video showing how it would work. 75,000 people signed up overnight. Then he built it.",
+        "data": "The waitlist went from 5,000 to 75,000 in one day. Zero code shipped."
+    },
+    {
+        "model": "North Star Metric",
+        "what": "One number that captures the core value you deliver to users. Everything else is secondary.",
+        "company": "Airbnb",
+        "story": "Airbnb's north star was nights booked, not revenue, not signups. Every team's work was measured against that single metric. It aligned 6,000 people without a memo.",
+        "data": "Airbnb went from near-bankruptcy in 2009 to 100 million nights booked annually."
+    },
+    {
+        "model": "Disagree and Commit",
+        "what": "Debate hard, decide fast, align completely. You don't have to agree to commit.",
+        "company": "Amazon",
+        "story": "Bezos openly disagreed with the launch of Amazon Studios but committed fully after the decision was made. He wrote this into the Leadership Principles. Most companies get stuck in silent disagreement disguised as alignment.",
+        "data": "Amazon Studios won 63 Emmy Awards. It didn't exist 15 years ago."
+    },
+    {
+        "model": "Flywheel Effect",
+        "what": "A self-reinforcing loop where each part makes the next part easier. Hard to start. Impossible to stop.",
+        "company": "Amazon",
+        "story": "More sellers attract more buyers. More buyers attract more sellers. Lower prices attract both. This is why Amazon Marketplace works. No single team drives it. The loop drives itself.",
+        "data": "Third-party sellers now account for 60% of Amazon's total sales volume."
+    },
+    {
+        "model": "Pre-mortem",
+        "what": "Before launching, assume the project failed. Work backwards to find out why.",
+        "company": "Google Ventures",
+        "story": "GV runs pre-mortems before every major investment. The team imagines it's 12 months later and the startup failed. They list every possible reason. Half those reasons get fixed before launch.",
+        "data": "GV's portfolio includes Uber, Slack, and 23andMe. Pre-mortems are mandatory."
+    },
+    {
+        "model": "Conway's Law",
+        "what": "Your software architecture will mirror your org chart. You build what your teams can communicate.",
+        "company": "Amazon",
+        "story": "Amazon reorganized into small independent teams before migrating to microservices. The architecture followed the org structure exactly. Teams that stayed monolithic shipped monoliths.",
+        "data": "Amazon has over 1,000 microservices in production. Each owned by one two-pizza team."
+    },
+    {
+        "model": "OKRs",
+        "what": "Objectives and Key Results. What you want to achieve and how you'll know you got there.",
+        "company": "Google",
+        "story": "John Doerr brought OKRs from Intel to Google when it had 40 employees. Larry Page was skeptical. They adopted it anyway. Every quarter, every team publishes OKRs publicly inside the company.",
+        "data": "Google has used OKRs for 25 years. It now has 180,000 employees."
+    },
+    {
+        "model": "Bikeshedding",
+        "what": "Teams spend disproportionate time on trivial decisions and skip the hard ones.",
+        "company": "Every company",
+        "story": "C. Northcote Parkinson observed that a committee approving a nuclear plant spent 2 minutes on the reactor and 45 minutes debating the color of the bike shed. Most sprint planning meetings are bike sheds.",
+        "data": "Studies show 50% of meeting time is spent on topics that affect less than 5% of outcomes."
+    },
+    {
+        "model": "Inversion Thinking",
+        "what": "Instead of asking how to succeed, ask what would guarantee failure. Then avoid that.",
+        "company": "Charlie Munger and Apple",
+        "story": "Apple doesn't ask how to make a great phone. They ask what makes phones terrible: bad battery, ugly design, confusing interface. They eliminate those first. The great product is what's left.",
+        "data": "iPhone has held over 55% US smartphone market share for 10 consecutive years."
+    },
+    {
+        "model": "5 Whys",
+        "what": "Ask why five times. The first answer is never the real cause.",
+        "company": "Toyota",
+        "story": "A Toyota factory floor had an oil puddle. Why? Machine leaking. Why? Pump failing. Why? Worn bearing. Why? No filter. Why? No maintenance schedule. The fix was a $2 filter. Not a new machine.",
+        "data": "Toyota's defect rate is 0.7 per 100 vehicles. The industry average is 1.5."
+    },
+    {
+        "model": "Dogfooding",
+        "what": "Use your own product before shipping it to customers.",
+        "company": "Microsoft",
+        "story": "Microsoft engineers were required to run Windows on their own machines months before release. Bugs that survived internal use were inexcusable. Companies that don't dogfood ship embarrassments.",
+        "data": "Windows 95 had 11 million copies sold in 4 weeks. Dogfooding cut critical bugs by 40%."
+    },
+    {
+        "model": "70-20-10 Rule",
+        "what": "Allocate 70% of resources to core business, 20% to adjacent bets, 10% to moonshots.",
+        "company": "Google",
+        "story": "Gmail started as a 20% project. Google News started as a 20% project. AdSense started as a 20% project. The 10% moonshots became Google X, Waymo, and DeepMind.",
+        "data": "Products from 20% time generated billions in revenue. Google formalised this in 2004."
+    },
+    {
+        "model": "Loss Aversion",
+        "what": "People feel losses twice as strongly as equivalent gains. Design for what users might lose, not just gain.",
+        "company": "Duolingo",
+        "story": "Duolingo's streak feature works because losing a 30-day streak hurts more than gaining a 30-day streak feels good. They designed the anxiety on purpose. It's not gamification. It's loss aversion.",
+        "data": "Duolingo has 500 million users. Streak users retain at 2x the rate of non-streak users."
+    },
+    {
+        "model": "Anchoring",
+        "what": "The first number someone sees shapes every decision that follows.",
+        "company": "Apple",
+        "story": "Steve Jobs revealed the iPad at $999 on screen, held it, then said 'We're pricing it at $499.' Every person in the room felt they were getting a deal. The anchor was fake. The feeling was real.",
+        "data": "iPad sold 300,000 units on day one. The anchoring technique is now standard in product launches."
+    },
+    {
+        "model": "Scarcity Principle",
+        "what": "People want what they can't easily have. Artificial scarcity drives urgency.",
+        "company": "Gmail",
+        "story": "Gmail launched in 2004 as invite-only. You needed to know someone who had an account. Invites sold on eBay for $150. Google created scarcity intentionally to drive demand for a free product.",
+        "data": "Gmail reached 1 million users 1 year after invite-only launch. It now has 1.8 billion users."
     },
 ]
 
 
-# ── Gemini ────────────────────────────────────────────────────────────────────
+# ── Voice ─────────────────────────────────────────────────────────────────────
 
-def _gemini(prompt, temperature=0.8):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-    payload = json.dumps({
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": 500, "temperature": temperature}
-    }).encode("utf-8")
-    req = urllib.request.Request(url, data=payload, method="POST")
-    req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=20) as r:
-        result = json.loads(r.read())
-    return result["candidates"][0]["content"]["parts"][0]["text"].strip()
+VOICE_PROMPT = """You are writing Threads posts for a senior product manager and technologist.
+
+VOICE RULES:
+- Practitioner-first: "I've noticed X." Grounded observation, not theory.
+- Skeptic: "Everyone says X. The real answer is Y." Earned contrarianism.
+- Write like a group chat with a smart friend, not a newsletter.
+- Use contractions (isn't, you're, that's). Sound human.
+
+ALWAYS:
+- Open with "I" perspective when possible. First-person lands harder.
+- Create a tension gap in the first line. Make the reader need to know what's next.
+- Name the company, name the product, name the outcome. Be specific.
+- Ground claims in numbers when you can.
+
+NEVER:
+- Use dashes ( - ) anywhere. Not hyphens, not em dashes. Use a period or new line.
+- Sound like LinkedIn, a newsletter, or a textbook.
+- Use: "game-changer", "revolutionary", "unlock", "supercharge", "leverage"
+- Hashtag spam (zero or one max)
+- Motivational filler of any kind"""
 
 
-# ── Content ───────────────────────────────────────────────────────────────────
+# ── Sources ───────────────────────────────────────────────────────────────────
 
-def fetch_hn_headlines(n=5):
+def fetch_techcrunch_ai(n=4):
+    try:
+        url = "https://techcrunch.com/category/artificial-intelligence/feed/"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            content = r.read().decode("utf-8")
+        titles = re.findall(r"<title><!\[CDATA\[(.*?)\]\]></title>", content)
+        titles = [t for t in titles if "TechCrunch" not in t]
+        return titles[:n]
+    except Exception:
+        return []
+
+
+def fetch_hn_headlines(n=4):
     try:
         with urllib.request.urlopen("https://hacker-news.firebaseio.com/v0/topstories.json", timeout=5) as r:
             ids = json.loads(r.read())[:20]
@@ -121,33 +232,33 @@ def fetch_hn_headlines(n=5):
         return []
 
 
-def fetch_techcrunch_ai(n=5):
-    """Pull latest AI headlines from TechCrunch RSS."""
-    try:
-        url = "https://techcrunch.com/category/artificial-intelligence/feed/"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as r:
-            content = r.read().decode("utf-8")
-        import re
-        titles = re.findall(r"<title><!\[CDATA\[(.*?)\]\]></title>", content)
-        titles = [t for t in titles if "TechCrunch" not in t]
-        return titles[:n]
-    except Exception:
-        return []
+# ── Gemini ────────────────────────────────────────────────────────────────────
+
+def _gemini(prompt, temperature=0.8):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": 600, "temperature": temperature}
+    }).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, method="POST")
+    req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req, timeout=20) as r:
+        result = json.loads(r.read())
+    return result["candidates"][0]["content"]["parts"][0]["text"].strip()
 
 
-def fetch_all_sources():
-    """Combine HN + TechCrunch AI headlines."""
-    hn = fetch_hn_headlines(4)
-    tc = fetch_techcrunch_ai(4)
-    combined = tc + hn  # TechCrunch first — more AI-specific
-    return combined[:8]
+# ── Content generation ────────────────────────────────────────────────────────
+
+def pick_mental_model(post_number):
+    """Cycle through mental models so we never repeat within a week."""
+    idx = post_number % len(MENTAL_MODELS)
+    return MENTAL_MODELS[idx]
 
 
-def get_today_pillar():
-    pst = timezone(timedelta(hours=-8))
-    weekday = datetime.now(pst).weekday()
-    return PILLARS[weekday]
+def get_post_number():
+    """Estimate total posts so far today based on UTC hour."""
+    hour = datetime.now(timezone.utc).hour
+    return 0 if hour < 18 else (1 if hour < 22 else 2)
 
 
 def refine_draft(draft):
@@ -157,11 +268,11 @@ Original post:
 \"\"\"{draft}\"\"\"
 
 Rules:
-- Rewrite the opening line to create tension or curiosity. It must stop the scroll.
-- Tighten every line. Cut filler. Remove anything that doesn't earn its place.
-- Keep the core insight and voice intact.
-- Open with "I" if it fits naturally.
-- Stay under 300 characters total.
+- Rewrite the opening line to stop the scroll. Create tension or curiosity immediately.
+- Tighten every line. Remove anything that doesn't earn its place.
+- Keep the mental model name, the company name, and the outcome data. These are non-negotiable.
+- Keep the core insight intact.
+- Stay under 400 characters total.
 - No emojis, no hashtags, no LinkedIn tone.
 - CRITICAL: Never use dashes ( - ) anywhere. Use a period or line break instead.
 
@@ -169,29 +280,35 @@ Output only the rewritten post, nothing else."""
     return _gemini(prompt, temperature=0.7)
 
 
-def generate_content(pillar, post_number=0):
-    headlines = fetch_all_sources()
-    headlines_str = "\n".join(f"- {h}" for h in headlines) if headlines else "No headlines available."
-    fmt = FORMATS[post_number % len(FORMATS)]
+def generate_content(post_number=0):
+    mm = pick_mental_model(post_number)
+    tc = fetch_techcrunch_ai(3)
+    hn = fetch_hn_headlines(3)
+    headlines = tc + hn
+    headlines_str = "\n".join(f"- {h}" for h in headlines) if headlines else ""
 
     prompt = f"""{VOICE_PROMPT}
 
-Today's content pillar: {pillar['name']}
-Focus: {pillar['focus']}
+Today's mental model to write about:
+Model: {mm['model']}
+What it is: {mm['what']}
+Company: {mm['company']}
+What they did: {mm['story']}
+Data/outcome: {mm['data']}
 
-Recent AI + tech headlines (use as inspiration, not to summarize):
-{headlines_str}
+{f"Recent AI/tech news for additional context (optional, use only if relevant):{chr(10)}{headlines_str}" if headlines_str else ""}
 
-Format: {fmt['name']}
-{fmt['instruction']}
+Write a single Threads post using this structure:
+1. Open with a sharp, specific observation about the mental model or the company story. First line must stop the scroll.
+2. Explain what the company actually did. Be specific. Name the product or decision.
+3. End with the outcome or data. Let the number land.
+4. Optional: one-line insight the reader can take away.
 
-DATA RULE: If you can ground the post in a real statistic, percentage, dollar figure, or timeframe, do it. Numbers make claims credible and stoppable. Example: "67% of AI projects fail in production" beats "most AI projects fail". Only use data you're confident is accurate.
-
-CRITICAL: Never use dashes ( - ) anywhere in the post.
+Keep it under 400 characters. No filler. No motivation. No dashes anywhere.
 Output only the post text, nothing else."""
 
     draft = _gemini(prompt)
-    return refine_draft(draft), fmt["name"]
+    return refine_draft(draft), mm["model"]
 
 
 # ── Threads ───────────────────────────────────────────────────────────────────
@@ -229,17 +346,13 @@ class handler(BaseHTTPRequestHandler):
             return
 
         try:
-            pillar = get_today_pillar()
-            hour = datetime.now(timezone.utc).hour
-            post_number = 0 if hour < 18 else (1 if hour < 22 else 2)
-
-            content, fmt_name = generate_content(pillar, post_number)
+            post_number = get_post_number()
+            content, model_name = generate_content(post_number)
             thread_id = post_to_threads(content)
 
             self._respond(200, {
                 "ok": True,
-                "pillar": pillar["name"],
-                "format": fmt_name,
+                "model": model_name,
                 "thread_id": thread_id,
                 "content": content,
             })
