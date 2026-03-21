@@ -31,25 +31,81 @@ CRON_SECRET     = os.environ.get("CRON_SECRET", "")
 
 MENTAL_MODELS = [
     {
+        "model": "First Principles Thinking",
+        "what": "Break every assumption down to its most basic truth, then rebuild from scratch. Ignore what everyone else does.",
+        "company": "SpaceX",
+        "story": "Everyone said rockets cost $65M because that's what they always cost. Musk asked what the raw materials actually cost. Carbon fiber, aluminum, titanium, copper: $2M. SpaceX built their own instead of buying. Same rocket, 10x cheaper.",
+        "data": "SpaceX reduced launch costs from $65M to $6M per launch. Falcon 9 now holds 60% of the global commercial launch market."
+    },
+    {
+        "model": "Pareto Principle",
+        "what": "80% of your results come from 20% of your causes. Find those 20% and go all in.",
+        "company": "Microsoft",
+        "story": "Microsoft's engineers analyzed Windows crash reports and found that 20% of bugs caused 80% of all crashes and freezes. They stopped spreading fixes evenly and prioritized those bugs exclusively. Stability improved more in one release than the three before it.",
+        "data": "Fixing the top 20% of reported bugs eliminated 80% of Windows errors in production."
+    },
+    {
+        "model": "Inversion Thinking",
+        "what": "Don't ask how to succeed. Ask what would guarantee failure and systematically avoid it.",
+        "company": "Apple",
+        "story": "Apple's design process doesn't start with 'how do we make a great phone'. It starts with a list of everything that makes phones miserable: bad battery, cluttered interface, ugly hardware. They eliminate those first. What's left is the product.",
+        "data": "iPhone has held over 55% US smartphone market share for 10 consecutive years."
+    },
+    {
+        "model": "Systems Thinking",
+        "what": "Every action has ripple effects. Optimizing one part of a system often breaks another. See the whole before you touch the parts.",
+        "company": "Toyota",
+        "story": "Toyota's rivals optimized each factory station individually. Toyota mapped the entire value stream from raw steel to delivered car. They found that parts spent 95% of their time waiting, not being worked on. They fixed the wait, not the stations.",
+        "data": "Toyota produces a car every 57 seconds. Its inventory turnover is 15x the US auto industry average."
+    },
+    {
+        "model": "Second-Level Thinking",
+        "what": "First-level thinking asks what happens next. Second-level thinking asks what happens after that.",
+        "company": "Instagram",
+        "story": "Instagram removed public likes in 2019. First-level effect: less vanity metrics. Second-level effect: creators stopped obsessing over performance and started posting more authentically. Engagement rates went up. Time on app increased.",
+        "data": "Instagram's daily active users grew from 500M to 700M in the two years after the change."
+    },
+    {
+        "model": "Circle of Competence",
+        "what": "Know what you know well. Know the edges of that circle. Never pretend the circle is bigger than it is.",
+        "company": "Berkshire Hathaway",
+        "story": "Warren Buffett passed on every major tech company in the 90s dot-com boom. He admitted he didn't understand how to value them. While others lost 80% of their portfolios, Berkshire returned 9% annually through the crash.",
+        "data": "Buffett's 60-year average annual return is 19.8%. The S&P 500 averaged 10.2% over the same period."
+    },
+    {
+        "model": "Occam's Razor",
+        "what": "Given two explanations, the simpler one is usually right. Given two solutions, the simpler one usually wins.",
+        "company": "Google",
+        "story": "In 1998, every search engine homepage was a portal: news, weather, stocks, ads, links. Google launched with a white page and a search box. Users didn't need to be trained. The simplest interface won the entire market.",
+        "data": "Google now processes 8.5 billion searches per day. Yahoo, the leader in 1998, sold to Verizon for $4.5B in 2017."
+    },
+    {
+        "model": "Compound Interest",
+        "what": "Small consistent improvements compound into results that feel impossible. The math only works if you don't stop.",
+        "company": "Amazon Prime",
+        "story": "Amazon launched Prime in 2005 as a $79/year bet. Each year they added one small benefit: free movies, then music, then grocery delivery. No single addition looked like much. After 15 compounding years it had become the main reason people shopped on Amazon at all.",
+        "data": "Prime has 200 million members globally. Prime members spend $1,400/year vs. $600 for non-members."
+    },
+    {
+        "model": "Probabilistic Thinking",
+        "what": "Don't predict one outcome. Model a range of outcomes and their likelihoods. Decisions should match the distribution, not the prediction.",
+        "company": "Netflix",
+        "story": "Netflix doesn't greenlight shows by predicting which will be hits. They model the probability distribution across 100 shows. Their goal is a portfolio that returns well on average, not a single bet that might be right. House of Cards was a probabilistic bet, not a certainty.",
+        "data": "Netflix original content budget reached $17B in 2023. Their hit rate is 3x higher than traditional studios."
+    },
+    {
+        "model": "Redundancy",
+        "what": "Build backup systems before you need them. The cost of redundancy is always less than the cost of failure.",
+        "company": "AWS",
+        "story": "AWS designed every data center assuming the one next to it would fail. They built Availability Zones so that no single outage could take down a customer's application. Most of their competitors built one big data center and called it reliable.",
+        "data": "AWS has 99.99% uptime SLA across its core services. A 0.01% outage at AWS affects more systems than most countries' entire internet infrastructure."
+    },
+    {
         "model": "Working Backwards",
         "what": "Write the press release before writing any code. Forces clarity on who benefits and why.",
         "company": "Amazon",
         "story": "Every feature starts with a fake press release. The team that skipped it built the Fire Phone. The teams that didn't built Prime and AWS.",
         "data": "AWS grew to $90B revenue. Fire Phone was discontinued in 12 months."
-    },
-    {
-        "model": "Two-Pizza Rule",
-        "what": "If two pizzas can't feed the team, it's too big. Small teams ship faster and own more.",
-        "company": "Amazon",
-        "story": "Bezos broke up large teams into units of 6 to 10. Each team owns one service end to end. No coordination tax.",
-        "data": "Amazon deploys code every 11 seconds. Most companies deploy once a week."
-    },
-    {
-        "model": "Regret Minimization Framework",
-        "what": "Imagine yourself at 80 looking back. Would you regret not doing this?",
-        "company": "Amazon",
-        "story": "Bezos used this to quit his hedge fund job in 1994 and start Amazon. He knew at 80 he wouldn't regret trying. He would regret not trying.",
-        "data": "Amazon started in a garage. It's now worth over $1.8 trillion."
     },
     {
         "model": "Jobs To Be Done",
@@ -80,13 +136,6 @@ MENTAL_MODELS = [
         "data": "Airbnb went from near-bankruptcy in 2009 to 100 million nights booked annually."
     },
     {
-        "model": "Disagree and Commit",
-        "what": "Debate hard, decide fast, align completely. You don't have to agree to commit.",
-        "company": "Amazon",
-        "story": "Bezos openly disagreed with the launch of Amazon Studios but committed fully after the decision was made. He wrote this into the Leadership Principles. Most companies get stuck in silent disagreement disguised as alignment.",
-        "data": "Amazon Studios won 63 Emmy Awards. It didn't exist 15 years ago."
-    },
-    {
         "model": "Flywheel Effect",
         "what": "A self-reinforcing loop where each part makes the next part easier. Hard to start. Impossible to stop.",
         "company": "Amazon",
@@ -99,55 +148,6 @@ MENTAL_MODELS = [
         "company": "Google Ventures",
         "story": "GV runs pre-mortems before every major investment. The team imagines it's 12 months later and the startup failed. They list every possible reason. Half those reasons get fixed before launch.",
         "data": "GV's portfolio includes Uber, Slack, and 23andMe. Pre-mortems are mandatory."
-    },
-    {
-        "model": "Conway's Law",
-        "what": "Your software architecture will mirror your org chart. You build what your teams can communicate.",
-        "company": "Amazon",
-        "story": "Amazon reorganized into small independent teams before migrating to microservices. The architecture followed the org structure exactly. Teams that stayed monolithic shipped monoliths.",
-        "data": "Amazon has over 1,000 microservices in production. Each owned by one two-pizza team."
-    },
-    {
-        "model": "OKRs",
-        "what": "Objectives and Key Results. What you want to achieve and how you'll know you got there.",
-        "company": "Google",
-        "story": "John Doerr brought OKRs from Intel to Google when it had 40 employees. Larry Page was skeptical. They adopted it anyway. Every quarter, every team publishes OKRs publicly inside the company.",
-        "data": "Google has used OKRs for 25 years. It now has 180,000 employees."
-    },
-    {
-        "model": "Bikeshedding",
-        "what": "Teams spend disproportionate time on trivial decisions and skip the hard ones.",
-        "company": "Every company",
-        "story": "C. Northcote Parkinson observed that a committee approving a nuclear plant spent 2 minutes on the reactor and 45 minutes debating the color of the bike shed. Most sprint planning meetings are bike sheds.",
-        "data": "Studies show 50% of meeting time is spent on topics that affect less than 5% of outcomes."
-    },
-    {
-        "model": "Inversion Thinking",
-        "what": "Instead of asking how to succeed, ask what would guarantee failure. Then avoid that.",
-        "company": "Charlie Munger and Apple",
-        "story": "Apple doesn't ask how to make a great phone. They ask what makes phones terrible: bad battery, ugly design, confusing interface. They eliminate those first. The great product is what's left.",
-        "data": "iPhone has held over 55% US smartphone market share for 10 consecutive years."
-    },
-    {
-        "model": "5 Whys",
-        "what": "Ask why five times. The first answer is never the real cause.",
-        "company": "Toyota",
-        "story": "A Toyota factory floor had an oil puddle. Why? Machine leaking. Why? Pump failing. Why? Worn bearing. Why? No filter. Why? No maintenance schedule. The fix was a $2 filter. Not a new machine.",
-        "data": "Toyota's defect rate is 0.7 per 100 vehicles. The industry average is 1.5."
-    },
-    {
-        "model": "Dogfooding",
-        "what": "Use your own product before shipping it to customers.",
-        "company": "Microsoft",
-        "story": "Microsoft engineers were required to run Windows on their own machines months before release. Bugs that survived internal use were inexcusable. Companies that don't dogfood ship embarrassments.",
-        "data": "Windows 95 had 11 million copies sold in 4 weeks. Dogfooding cut critical bugs by 40%."
-    },
-    {
-        "model": "70-20-10 Rule",
-        "what": "Allocate 70% of resources to core business, 20% to adjacent bets, 10% to moonshots.",
-        "company": "Google",
-        "story": "Gmail started as a 20% project. Google News started as a 20% project. AdSense started as a 20% project. The 10% moonshots became Google X, Waymo, and DeepMind.",
-        "data": "Products from 20% time generated billions in revenue. Google formalised this in 2004."
     },
     {
         "model": "Loss Aversion",
@@ -169,6 +169,13 @@ MENTAL_MODELS = [
         "company": "Gmail",
         "story": "Gmail launched in 2004 as invite-only. You needed to know someone who had an account. Invites sold on eBay for $150. Google created scarcity intentionally to drive demand for a free product.",
         "data": "Gmail reached 1 million users 1 year after invite-only launch. It now has 1.8 billion users."
+    },
+    {
+        "model": "Dogfooding",
+        "what": "Use your own product before shipping it to customers.",
+        "company": "Slack",
+        "story": "Slack was built internally at a gaming company called Tiny Speck. The team used it every day while building their actual product. When the game failed, they had accidentally built something people couldn't stop using. They shipped the tool, not the game.",
+        "data": "Slack grew to $7B ARR and was acquired by Salesforce for $27.7B in 2021."
     },
 ]
 
@@ -256,9 +263,13 @@ def pick_mental_model(post_number):
 
 
 def get_post_number():
-    """Estimate total posts so far today based on UTC hour."""
-    hour = datetime.now(timezone.utc).hour
-    return 0 if hour < 18 else (1 if hour < 22 else 2)
+    """Unique index per 8-hour slot across the year. Never repeats the same model twice in a row."""
+    now = datetime.now(timezone.utc)
+    day_of_year = now.timetuple().tm_yday
+    hour = now.hour
+    # Slot 0 = 7:30 AM PST (15:30 UTC), Slot 1 = 12:30 PM PST (20:30 UTC), Slot 2 = 6:30 PM PST (02:30 UTC next day)
+    slot = 0 if hour < 19 else (1 if hour < 23 else 2)
+    return (day_of_year - 1) * 3 + slot
 
 
 def refine_draft(draft):
