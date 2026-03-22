@@ -312,16 +312,17 @@ def get_post_number():
 
 
 def refine_draft(draft):
-    prompt = f"""You are a Threads engagement editor. This account's niche is mental models for product managers and product writers. Make this post land harder for that audience.
+    prompt = f"""You are a Threads engagement editor. This account's niche is: mental models + product thinking + data.
 
 Original post:
 \"\"\"{draft}\"\"\"
 
 Rules:
-- Rewrite the opening line so a product manager feels immediately seen or challenged.
+- Rewrite the opening line so a product thinker stops scrolling immediately.
+- Every post must have all three elements: a named mental model, a product decision, and real data.
+- If the data is missing or vague, sharpen it. The number must land.
+- The insight must be something a PM can apply this week, not a general observation.
 - Tighten every line. Remove anything that doesn't earn its place.
-- Keep the mental model name, the company name, and the outcome data. These are non-negotiable.
-- The post must feel like a product thinking lesson, not a general business insight.
 - Stay under 400 characters total.
 - No emojis, no hashtags, no LinkedIn tone, no motivational filler.
 - CRITICAL: Never use dashes ( - ) anywhere. Use a period or line break instead.
@@ -339,9 +340,10 @@ def generate_content(post_number=0):
 
     prompt = f"""{VOICE_PROMPT}
 
-NICHE: This account posts about mental models applied to product management and product writing.
-Every post must land as a lesson a product manager or product writer can apply to their work.
-Not a general business insight. Not a startup inspiration quote. A product thinking lesson.
+NICHE: This account's three pillars are mental models, product thinking, and data.
+Every post must combine all three: a named mental model, applied to a product decision, backed by real data.
+Not a general business insight. Not a startup inspiration quote. Not a data point without context.
+A product thinker sees the pattern. The data proves it happened. The mental model names it.
 
 Today's mental model:
 Model: {mm['model']}
