@@ -27,179 +27,63 @@ THREADS_API     = "https://graph.threads.net/v1.0"
 CRON_SECRET     = os.environ.get("CRON_SECRET", "")
 
 
-# ── Mental Models Bank ────────────────────────────────────────────────────────
-# 24 models. Every one uses a different company. No Amazon/Apple/Netflix clusters.
-# Hardcoded stories = accurate data, no hallucination, guaranteed variety across the cycle.
+# ── Mental Models (definitions only) ─────────────────────────────────────────
 
 MENTAL_MODELS = [
-    {
-        "model": "Working Backwards",
-        "what": "Write the press release before writing any code. Forces clarity on who benefits and why.",
-        "company": "Amazon",
-        "story": "Every feature team writes a fake press release first. The team that skipped it built the Fire Phone. The teams that used it built Prime and AWS.",
-        "data": "Fire Phone died in 12 months. AWS hit $90B in annual revenue."
-    },
-    {
-        "model": "Jobs To Be Done",
-        "what": "People don't use products. They hire them to make progress in a specific situation.",
-        "company": "Intercom",
-        "story": "Intercom asked customers what they were actually trying to do when they opened the chat widget. The job wasn't 'chat'. It was 'close this deal before the prospect leaves the page'. That insight rewrote their entire product strategy.",
-        "data": "Intercom grew to $150M ARR. The shift came from 20 interviews, not a roadmap."
-    },
-    {
-        "model": "Minimum Viable Product",
-        "what": "The smallest thing that tests your most critical assumption. Not the smallest thing you can build.",
-        "company": "Buffer",
-        "story": "Joel Gascoigne didn't build Buffer first. He put up a landing page with two pricing tiers and a 'coming soon' button. People clicked. He emailed them. They confirmed they'd pay. Then he built it.",
-        "data": "First paying customer acquired before a single line of app code was shipped."
-    },
-    {
-        "model": "North Star Metric",
-        "what": "One number that captures the core value you deliver. Everything else is a leading indicator.",
-        "company": "Spotify",
-        "story": "Spotify's north star is time spent listening, not monthly active users, not downloads. Every team's roadmap is filtered through that single lens. A feature that adds MAUs but doesn't increase listening time loses the prioritization argument.",
-        "data": "Spotify users average 30 minutes of daily listening. The metric drives every product bet."
-    },
-    {
-        "model": "Flywheel Effect",
-        "what": "A self-reinforcing loop where each part makes the next part easier. Hard to start. Very hard to stop.",
-        "company": "Shopify",
-        "story": "More merchants attract more app developers. More apps make Shopify more useful to merchants. Better merchant outcomes attract more merchants. No single PM owns the flywheel. Product's job is to keep each part turning.",
-        "data": "Shopify's app ecosystem has 8,000+ apps. Third-party developers earn 4x what Shopify earns from the platform."
-    },
-    {
-        "model": "Pre-mortem",
-        "what": "Before you launch, assume the project already failed. Work backwards to find out exactly why.",
-        "company": "Linear",
-        "story": "Linear's team runs assumption audits before every major feature release. They ask: what would have to be true for this to fail? They generate every plausible failure mode. The ones that are fixable get fixed before launch. The ones that aren't become known risks, not surprises.",
-        "data": "Linear reached $35M ARR with a team of under 30 people. Focused shipping is a stated product principle."
-    },
-    {
-        "model": "Second-Order Thinking",
-        "what": "First-order thinking asks what happens next. Second-order thinking asks what happens after that.",
-        "company": "Instagram",
-        "story": "Instagram hid public like counts in 2019. First-order effect: less vanity pressure on creators. Second-order effect: creators stopped chasing spikes and started building consistent presence. Authentic content outperformed viral content. Platform ad value went up.",
-        "data": "Instagram daily active users grew from 500M to 700M in the two years after the change."
-    },
-    {
-        "model": "Inversion",
-        "what": "Don't ask how to make a great product. Ask what would make it terrible, then eliminate those things.",
-        "company": "Superhuman",
-        "story": "Rahul Vohra's team didn't start by adding features. They interviewed churned users and mapped every reason email felt bad: slow load, cognitive overload, no keyboard shortcuts, anxiety from inbox count. The product spec was a list of failures to eliminate.",
-        "data": "Superhuman charges $30/month for email. NPS of 58 vs Gmail's 1."
-    },
-    {
-        "model": "Loss Aversion",
-        "what": "People feel losses twice as intensely as equivalent gains. Design for what users stand to lose.",
-        "company": "Duolingo",
-        "story": "Duolingo's streak feature is engineered anxiety. Losing a 60-day streak hurts more than building one feels good. The discomfort is the product. They A/B tested the grief messaging. The version that made users feel worse retained better.",
-        "data": "Duolingo has 500M users. Streak users retain at 2x the rate of non-streak users."
-    },
-    {
-        "model": "Anchoring",
-        "what": "The first number a person sees shapes every judgment that follows.",
-        "company": "Figma",
-        "story": "Figma's pricing page leads with the Professional plan at $15/seat before showing the free tier. The free tier feels generous next to a paid anchor. Most design tools led with free and struggled to convert. Figma inverted the frame.",
-        "data": "Figma grew to $400M ARR and a $10B acquisition offer from Adobe. Pricing strategy was cited in their S-1 analysis."
-    },
-    {
-        "model": "Dogfooding",
-        "what": "Use your own product before shipping it to customers. Not as a test. As your primary workflow.",
-        "company": "Slack",
-        "story": "Slack was an internal tool at a gaming company called Tiny Speck. The team used it daily while building their actual product, a game called Glitch. When Glitch failed, they realized they'd built something they couldn't work without. They shipped the tool instead.",
-        "data": "Slack grew to $7B ARR and was acquired by Salesforce for $27.7B in 2021."
-    },
-    {
-        "model": "Pareto Principle in Product",
-        "what": "80% of your product's value comes from 20% of its features. The rest is overhead.",
-        "company": "Basecamp",
-        "story": "Basecamp deliberately removed features every year. Calendar integrations, time tracking, client billing — gone. Each removal was a bet that the remaining 20% of features delivered 80% of the value. They were right each time. The product got faster and simpler.",
-        "data": "Basecamp is profitable with under 60 employees serving 3 million companies. No VC, no growth team."
-    },
-    {
-        "model": "Occam's Razor in Specs",
-        "what": "When two solutions solve the same problem, the simpler one wins. Not because it's easier to build — because users trust it faster.",
-        "company": "Linear",
-        "story": "Linear's issue tracker has fewer features than Jira by design. Every feature request goes through a filter: does the simplest version solve this? The team says no more than yes. The result is a product that engineers actually open without dreading it.",
-        "data": "Linear grew to $35M ARR. NPS consistently above 70 in developer tooling surveys."
-    },
-    {
-        "model": "Probabilistic Roadmaps",
-        "what": "Don't predict which feature wins. Build a portfolio of bets where the expected value justifies the investment.",
-        "company": "Duolingo",
-        "story": "Duolingo runs hundreds of A/B tests simultaneously. They don't predict which variant will win. They model a distribution and invest in the portfolio. Most experiments fail. The ones that don't compound. The roadmap is a bet portfolio, not a feature list.",
-        "data": "Duolingo runs 500+ experiments per year. Their experiment velocity is a stated growth driver."
-    },
-    {
-        "model": "The Rule of Three in Product Writing",
-        "what": "Every product doc should answer exactly three questions: what is the problem, who has it, what changes when it's solved.",
-        "company": "Stripe",
-        "story": "Stripe's API documentation is structured around three questions for every endpoint: what does this do, when would you use it, and what does success look like. Internal specs follow the same structure. Docs longer than three paragraphs go back for revision.",
-        "data": "Stripe reached $95B valuation. Writing clarity is listed as a core hiring signal in their eng blog."
-    },
-    {
-        "model": "Opportunity Scoring",
-        "what": "Prioritize by importance minus satisfaction. Critical job, poorly served = your opening.",
-        "company": "Notion",
-        "story": "Notion's early team surveyed knowledge workers. Document organization scored high on importance and low on satisfaction across every existing tool. The gap was larger than any other job. They didn't build another doc editor. They built around the gap.",
-        "data": "Notion grew to 20M users and a $10B valuation in under 5 years."
-    },
-    {
-        "model": "Type 1 vs Type 2 Decisions",
-        "what": "Reversible decisions should be made fast. Irreversible decisions deserve more process. Conflating them is how teams get slow.",
-        "company": "Amazon",
-        "story": "Bezos formalized this in his 2015 shareholder letter. Type 2: change the copy, the price, the flow. Make it fast. Type 1: data contracts, API design, architecture. Slow down. Most PMs apply the same approval process to both and wonder why everything takes six months.",
-        "data": "Amazon runs 50+ autonomous product teams. Decision velocity is a stated competitive advantage."
-    },
-    {
-        "model": "Narrative Fallacy in Specs",
-        "what": "A coherent product story can make a bad bet feel inevitable. Be suspicious of specs that read too cleanly.",
-        "company": "Quibi",
-        "story": "Quibi's pitch deck was spotless: mobile-first, short-form, premium content, Hollywood talent. Every slide connected. Every assumption reinforced the next. Nobody stress-tested whether people actually wanted 10-minute premium shows on their phones during commutes.",
-        "data": "Quibi raised $1.75B and shut down in 6 months. The narrative outlasted the evidence by two years."
-    },
-    {
-        "model": "The Curse of Knowledge in Product Writing",
-        "what": "The more you know about your product, the harder it is to write for someone who doesn't. Expertise kills clarity.",
-        "company": "Stripe",
-        "story": "Stripe's developer docs are written with a rule: assume the reader has never heard the term being explained. Every API concept is defined the first time it appears. No assumed context. Engineers who wrote the API are not allowed to write the docs without a plain-language reviewer.",
-        "data": "Stripe's docs are ranked the best in developer tooling surveys year over year. Directly cited as a growth driver."
-    },
-    {
-        "model": "Shape Up: Fixed Time, Variable Scope",
-        "what": "Fix the time. Flex the scope. A 6-week cycle with a variable spec ships more than infinite sprints with a fixed one.",
-        "company": "Basecamp",
-        "story": "Basecamp replaced sprints with 6-week cycles. Teams get a problem and a time box — not a feature list. Scope is negotiated during the cycle, not before. Edge cases get cut. The core ships. What doesn't fit goes to the next cycle.",
-        "data": "Basecamp has been profitable for 20+ years without a growth team. Shape Up is now used at Linear, Pitch, and dozens of product orgs."
-    },
-    {
-        "model": "Regret Minimization in Product Decisions",
-        "what": "When deciding whether to build, ask: will I regret not doing this at 80? Most urgent roadmap debates look trivial from that view.",
-        "company": "GitHub",
-        "story": "GitHub's team used this framing when deciding whether to build GitHub Actions. It wasn't on the roadmap. It would take a year. Competitors didn't have it. The regret question was: will we regret not owning developer workflows in 10 years? The answer decided the project.",
-        "data": "GitHub Actions is used by 10M+ developers. Microsoft cited it as a key acquisition rationale at $7.5B."
-    },
-    {
-        "model": "Adjacent Possible in Product Strategy",
-        "what": "Every product can only move one step into what users already understand. Skip a step and they can't follow.",
-        "company": "Figma",
-        "story": "Figma didn't launch as a design system platform. They launched as a better Sketch with real-time collaboration — one step beyond what designers already used. When that landed, they added prototyping. Then components. Then dev mode. Each step was adjacent to the last.",
-        "data": "Figma grew to $400M ARR. Adobe offered $10B to acquire them in 2022."
-    },
-    {
-        "model": "Compound Improvement in Product Quality",
-        "what": "Small quality improvements compound. A 1% retention gain, compounded monthly, becomes a structurally different product in 18 months.",
-        "company": "Duolingo",
-        "story": "Duolingo's growth team doesn't chase big features. They run micro-experiments on notifications, streak recovery, lesson length, and sound design. Each improvement is tiny. Stacked quarterly, they compound into retention curves that competitors can't explain.",
-        "data": "Duolingo grew DAU from 10M to 37M in 3 years through experiment-driven compounding."
-    },
-    {
-        "model": "Scarcity and Urgency",
-        "what": "People want what they can't easily have. Artificial scarcity drives urgency even when supply is unlimited.",
-        "company": "Superhuman",
-        "story": "Superhuman launched invite-only and kept it that way for years. There was no technical reason. The waitlist was the product. Being invited to Superhuman meant something. The scarcity created a perception of quality before anyone had used it.",
-        "data": "Superhuman built a $75M ARR business charging $30/month for email. Invite-only was active for 4 years."
-    },
+    {"model": "Working Backwards", "what": "Write the press release before writing any code. Forces clarity on who benefits and why before a single decision is locked in."},
+    {"model": "Jobs To Be Done", "what": "People don't use products. They hire them to make progress in a specific situation. The job doesn't change. The product does."},
+    {"model": "Minimum Viable Product", "what": "The smallest thing that tests your most critical assumption. Not the smallest thing you can build."},
+    {"model": "North Star Metric", "what": "One number that captures the core value you deliver. Everything else is a leading indicator or a distraction."},
+    {"model": "Flywheel Effect", "what": "A self-reinforcing loop where each part makes the next part easier. Hard to start. Very hard to stop."},
+    {"model": "Pre-mortem", "what": "Before you launch, assume the project already failed. Work backwards to find out exactly why."},
+    {"model": "Second-Order Thinking", "what": "First-order thinking asks what happens next. Second-order thinking asks what happens after that, and who adapts."},
+    {"model": "Inversion", "what": "Don't ask how to make a great product. Ask what would make it terrible, then systematically eliminate those things."},
+    {"model": "Loss Aversion", "what": "People feel losses twice as intensely as equivalent gains. Design for what users stand to lose, not just what they'll gain."},
+    {"model": "Anchoring", "what": "The first number a person sees shapes every judgment that follows. In product, the anchor is almost always set before the price conversation starts."},
+    {"model": "Dogfooding", "what": "Use your own product before shipping it to customers. Not as a test. As your primary workflow."},
+    {"model": "Pareto Principle in Product", "what": "80% of your product's value comes from 20% of its features. The rest is maintenance overhead masquerading as product strategy."},
+    {"model": "Occam's Razor in Specs", "what": "When two solutions solve the same problem, the simpler one wins. Not because it's easier to build. Because users trust it faster."},
+    {"model": "Probabilistic Roadmaps", "what": "Don't predict which feature wins. Build a portfolio of bets where the expected value across all of them justifies the investment."},
+    {"model": "The Rule of Three in Product Writing", "what": "Every product doc should answer exactly three questions: what is the problem, who has it, what changes when it's solved."},
+    {"model": "Opportunity Scoring", "what": "Prioritize by importance minus satisfaction. If users say a job is critical but no product does it well, that's your opening."},
+    {"model": "Type 1 vs Type 2 Decisions", "what": "Reversible decisions should be made fast. Irreversible ones deserve more process. Conflating them is how teams get slow."},
+    {"model": "Narrative Fallacy in Specs", "what": "A coherent product story can make a bad bet feel inevitable. Be suspicious of specs that read too cleanly."},
+    {"model": "The Curse of Knowledge in Product Writing", "what": "The more you know about your product, the harder it is to write for someone who doesn't. Expertise kills clarity."},
+    {"model": "Shape Up: Fixed Time, Variable Scope", "what": "Fix the time, flex the scope. A 6-week cycle with a variable problem ships more than infinite sprints with a fixed spec."},
+    {"model": "Regret Minimization in Product Decisions", "what": "When deciding whether to build, ask: will I regret not doing this in 10 years? Most urgent roadmap debates look trivial from that view."},
+    {"model": "Adjacent Possible in Product Strategy", "what": "Every product can only move one step into what users already understand. Skip a step and they can't follow."},
+    {"model": "Compound Improvement in Product Quality", "what": "Small quality improvements compound. A 1% retention gain, compounded monthly, becomes a structurally different product in 18 months."},
+    {"model": "Scarcity and Urgency", "what": "People want what they can't easily have. Artificial scarcity drives urgency even when supply is unlimited."},
+]
+
+
+# ── Company Pool (with real data facts for Gemini to use) ─────────────────────
+
+COMPANIES = [
+    {"name": "Stripe", "facts": "$95B valuation. Writing clarity is a core hiring signal. API-first. Developer docs ranked best-in-class year over year."},
+    {"name": "Figma", "facts": "$400M ARR. Adobe acquisition offer at $10B. Real-time multiplayer was the core product bet. 4M+ designers."},
+    {"name": "Linear", "facts": "$35M ARR. Team under 50. NPS above 70 in developer tooling. Speed and simplicity as stated product principles."},
+    {"name": "Notion", "facts": "20M users. $10B valuation. Grew from near-zero in 5 years by targeting knowledge workers."},
+    {"name": "Duolingo", "facts": "500M users. 37M DAU. Runs 500+ A/B tests per year. Streak users retain at 2x rate. DAU grew from 10M to 37M in 3 years."},
+    {"name": "Superhuman", "facts": "$30/month for email. NPS of 58 vs Gmail's 1. Invite-only for 4 years. Built on rigorous user interview methodology."},
+    {"name": "Basecamp", "facts": "Profitable 20+ years. Under 60 employees. 3 million companies. Invented Shape Up. No VC, no growth team."},
+    {"name": "Intercom", "facts": "$150M ARR. Pioneer of Jobs to Be Done applied to B2B SaaS. Pivoted to AI-first customer support."},
+    {"name": "Slack", "facts": "$7B ARR. Acquired by Salesforce for $27.7B. Started as internal tool at gaming company Tiny Speck."},
+    {"name": "Shopify", "facts": "4M merchants. App ecosystem 8,000+ apps. Third-party developers earn 4x what Shopify earns from the platform."},
+    {"name": "Airbnb", "facts": "100M nights booked annually. Near-bankrupt in 2009. North star metric was nights booked, not revenue."},
+    {"name": "Spotify", "facts": "600M users. 30 min average daily listening. Runs bet-portfolio approach to product. Experiment velocity is a stated growth driver."},
+    {"name": "Buffer", "facts": "Founded with landing page test before a single line of code. $20M ARR bootstrapped. Transparent salary model."},
+    {"name": "GitHub", "facts": "100M developers. GitHub Actions used by 10M+. Acquired by Microsoft for $7.5B. Actions was not on original roadmap."},
+    {"name": "Dropbox", "facts": "Launched with demo video, 75K signups before code shipped. 700M registered users. Waitlist went from 5K to 75K overnight."},
+    {"name": "Quibi", "facts": "Raised $1.75B. Shut down in 6 months. Canonical product failure from narrative-driven decision making."},
+    {"name": "Instagram", "facts": "2B users. Hid like counts in 2019. DAU grew from 500M to 700M in two years after the change."},
+    {"name": "Discord", "facts": "200M users. Started for gamers, expanded to all communities. Free with Nitro premium. 19M daily active servers."},
+    {"name": "Canva", "facts": "150M users. $40B valuation. Democratized design for non-designers. 190 countries."},
+    {"name": "Zoom", "facts": "300M daily meeting participants at peak in 2020. Grew 30x in one year. Simplified one painful thing: joining a call."},
+    {"name": "HubSpot", "facts": "$2.2B revenue. Pioneered inbound marketing. 200K+ customers. Went from zero to IPO by teaching before selling."},
+    {"name": "Miro", "facts": "70M users. $17.5B valuation. Grew explosively during remote work shift by solving one job: real-time visual collaboration."},
+    {"name": "Loom", "facts": "Acquired by Atlassian for $975M. 25M users. Solved async video communication before it was a category."},
+    {"name": "Calm", "facts": "100M downloads. $2B valuation. Grew from simple sleep sounds to full mental wellness platform one adjacent step at a time."},
 ]
 
 
@@ -279,82 +163,51 @@ def _gemini(prompt, temperature=0.8):
 
 # ── Content generation ────────────────────────────────────────────────────────
 
-def pick_mental_model(post_number):
-    """
-    Cycle through mental models without repeating within a full cycle.
-    Each complete cycle uses a different shuffle order, so the same model
-    never appears in the same position across consecutive cycles.
-    """
-    n = len(MENTAL_MODELS)
-    cycle = post_number // n          # which full cycle we're in
-    position = post_number % n        # position within this cycle
-    rng = random.Random(cycle)        # deterministic but different each cycle
-    indices = list(range(n))
-    rng.shuffle(indices)
-    return MENTAL_MODELS[indices[position]]
-
-
-def get_post_number():
-    """Unique index per post slot across the year. 3 slots per day."""
-    now = datetime.now(timezone.utc)
-    day_of_year = now.timetuple().tm_yday
-    hour = now.hour
-    # Slot 0 = 7:30 AM PST (15:30 UTC), Slot 1 = 12:30 PM PST (20:30 UTC), Slot 2 = 6:30 PM PST (02:30 UTC next day)
-    slot = 0 if hour < 19 else (1 if hour < 23 else 2)
-    return (day_of_year - 1) * 3 + slot
-
-
 def refine_draft(draft):
-    prompt = f"""You are a Threads engagement editor. This account's niche is: mental models + product thinking + data.
+    prompt = f"""You are a Threads engagement editor. Niche: mental models + product thinking + data.
 
 Original post:
 \"\"\"{draft}\"\"\"
 
 Rules:
 - Rewrite the opening line so a product thinker stops scrolling immediately.
-- Every post must have all three elements: a named mental model, a product decision, and real data.
-- Keep the exact company and data from the original. Do not change them.
-- The insight must be something a PM can apply this week.
+- Keep all three elements: named mental model, product decision, real data.
+- Keep the exact company name and numbers from the original. Do not change them.
 - Tighten every line. Remove anything that doesn't earn its place.
-- Stay under 400 characters total.
+- Under 400 characters total.
 - No emojis, no hashtags, no LinkedIn tone, no motivational filler.
-- CRITICAL: Never use dashes ( - ) anywhere. Use a period or line break instead.
+- NEVER use dashes anywhere. Use a period or line break instead.
 
 Output only the rewritten post, nothing else."""
     return _gemini(prompt, temperature=0.7)
 
 
-def generate_content(post_number=0):
-    mm = pick_mental_model(post_number)
-    tc = fetch_techcrunch_ai(3)
-    hn = fetch_hn_headlines(3)
-    headlines = tc + hn
-    headlines_str = "\n".join(f"- {h}" for h in headlines) if headlines else ""
+def generate_content():
+    mm  = random.choice(MENTAL_MODELS)
+    co  = random.choice(COMPANIES)
 
     prompt = f"""{VOICE_PROMPT}
 
 NICHE: Mental models + product thinking + data.
-Every post: name the mental model, show the company story, end with the data.
+Every post must name the mental model, show a real product decision, and end with data.
 
-Today's mental model:
-Model: {mm['model']}
-What it is: {mm['what']}
-Company: {mm['company']}
-What they did: {mm['story']}
-Data: {mm['data']}
+Mental model: {mm['model']}
+Definition: {mm['what']}
 
-{f"Recent context (use only if it sharpens the PM angle):{chr(10)}{headlines_str}" if headlines_str else ""}
+Company to use: {co['name']}
+Real facts about {co['name']}: {co['facts']}
 
-Write a single Threads post:
-1. First line: sharp observation that makes a PM stop scrolling. Create tension.
-2. What the company did. Specific. Name the product or decision.
-3. The data. Let the number land.
-4. Optional: one line the reader can apply this week.
+Your job:
+1. Connect this mental model to a real product decision at {co['name']}. Use the facts above as your data source.
+2. First line: sharp observation that stops a PM mid-scroll. Create tension.
+3. What {co['name']} actually did. Specific decision or moment.
+4. End with a real number from the facts above. Let it land.
+5. Optional: one line the reader can apply this week.
 
-Keep it under 400 characters. No filler. No motivation. No dashes anywhere.
+Keep under 400 characters. No filler. No motivation. No dashes anywhere.
 Output only the post text, nothing else."""
 
-    draft = _gemini(prompt, temperature=0.85)
+    draft = _gemini(prompt, temperature=0.9)
     return refine_draft(draft), mm["model"]
 
 
@@ -393,8 +246,7 @@ class handler(BaseHTTPRequestHandler):
             return
 
         try:
-            post_number = get_post_number()
-            content, model_name = generate_content(post_number)
+            content, model_name = generate_content()
             thread_id = post_to_threads(content)
 
             self._respond(200, {
