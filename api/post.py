@@ -160,7 +160,8 @@ def get_post_number():
     return (day_of_year - 1) * 3 + slot
 
 
-def refine_draft(draft):
+def refine_draft(draft, company_hint=None):
+    company_rule = f"- The post must feature {company_hint} as the company. Do not swap it for a different company." if company_hint else ""
     prompt = f"""You are a Threads engagement editor. This account's niche is: mental models + product thinking + data.
 
 Original post:
@@ -175,6 +176,7 @@ Rules:
 - Stay under 400 characters total.
 - No emojis, no hashtags, no LinkedIn tone, no motivational filler.
 - CRITICAL: Never use dashes ( - ) anywhere. Use a period or line break instead.
+{company_rule}
 
 Output only the rewritten post, nothing else."""
     return _gemini(prompt, temperature=0.7)
@@ -244,8 +246,8 @@ Your job:
 Keep it under 400 characters. No filler. No motivation. No dashes anywhere.
 Output only the post text, nothing else."""
 
-    draft = _gemini(prompt)
-    return refine_draft(draft), mm["model"]
+    draft = _gemini(prompt, temperature=0.95)
+    return refine_draft(draft, company_hint=company_hint), mm["model"]
 
 
 # ── Threads ───────────────────────────────────────────────────────────────────
