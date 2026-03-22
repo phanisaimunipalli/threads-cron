@@ -189,26 +189,28 @@ def generate_content():
     prompt = f"""{VOICE_PROMPT}
 
 NICHE: Mental models + product thinking + data.
-Every post must name the mental model, show a real product decision, and end with data.
 
-Mental model: {mm['model']}
-Definition: {mm['what']}
+Company: {co['name']}
+What you know about {co['name']}: {co['facts']}
 
-Company to use: {co['name']}
-Real facts about {co['name']}: {co['facts']}
+Mental model lens to apply: {mm['model']}
+What it means: {mm['what']}
 
-Your job:
-1. Connect this mental model to a real product decision at {co['name']}. Use the facts above as your data source.
-2. First line: sharp observation that stops a PM mid-scroll. Create tension.
-3. What {co['name']} actually did. Specific decision or moment.
-4. End with a real number from the facts above. Let it land.
-5. Optional: one line the reader can apply this week.
+Write a Threads post about {co['name']} that illustrates the mental model above.
+Start from {co['name']}'s story. Use the facts above as your data source.
+Do NOT use Amazon, Apple, Netflix, or any other company. This post is about {co['name']} only.
 
-Keep under 400 characters. No filler. No motivation. No dashes anywhere.
+Structure:
+1. First line: sharp observation about {co['name']}'s product decision. Create tension.
+2. What {co['name']} actually did. Be specific.
+3. End with a real number from the facts above.
+4. Name the mental model naturally in the post. Don't force it as a label.
+
+Under 400 characters. No filler. No motivation. No dashes anywhere.
 Output only the post text, nothing else."""
 
     draft = _gemini(prompt, temperature=0.9)
-    return refine_draft(draft), mm["model"]
+    return refine_draft(draft), mm["model"], co["name"]
 
 
 # ── Threads ───────────────────────────────────────────────────────────────────
@@ -246,12 +248,13 @@ class handler(BaseHTTPRequestHandler):
             return
 
         try:
-            content, model_name = generate_content()
+            content, model_name, company_name = generate_content()
             thread_id = post_to_threads(content)
 
             self._respond(200, {
                 "ok": True,
                 "model": model_name,
+                "company": company_name,
                 "thread_id": thread_id,
                 "content": content,
             })
