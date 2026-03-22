@@ -180,6 +180,36 @@ Output only the rewritten post, nothing else."""
     return _gemini(prompt, temperature=0.7)
 
 
+COMPANY_POOLS = {
+    "Working Backwards": ["Stripe", "Linear", "Figma", "Notion", "Basecamp", "Superhuman", "Loom"],
+    "Jobs To Be Done": ["Intercom", "Figma", "Superhuman", "Canva", "Calendly", "Loom", "Miro"],
+    "Minimum Viable Product": ["Buffer", "Zapier", "Superhuman", "Notion", "Loom", "Linear", "Calm"],
+    "North Star Metric": ["Spotify", "Duolingo", "Figma", "Slack", "Zoom", "Linear", "Miro"],
+    "Flywheel Effect": ["Shopify", "Stripe", "GitHub", "Figma", "Canva", "HubSpot", "Twilio"],
+    "Pre-mortem": ["Stripe", "Linear", "Basecamp", "Intercom", "Loom", "Notion", "Figma"],
+    "Second-Order Thinking": ["Twitter", "Spotify", "LinkedIn", "Reddit", "Duolingo", "Discord", "Snapchat"],
+    "Inversion": ["Figma", "Linear", "Notion", "Basecamp", "Superhuman", "Calm", "Loom"],
+    "Loss Aversion": ["Duolingo", "Calm", "Headspace", "Robinhood", "Strava", "BeReal", "Oura"],
+    "Anchoring": ["Figma", "Notion", "Linear", "Superhuman", "Canva", "Loom", "Miro"],
+    "Dogfooding": ["Slack", "Linear", "Figma", "Notion", "Loom", "Superhuman", "Basecamp"],
+    "Pareto Principle in Product": ["Intercom", "HubSpot", "Zendesk", "Notion", "Linear", "Figma", "Loom"],
+    "Occam's Razor in Specs": ["Linear", "Superhuman", "Basecamp", "Notion", "Loom", "Calm", "Figma"],
+    "Probabilistic Roadmaps": ["Spotify", "Duolingo", "Discord", "Figma", "Notion", "Linear", "Miro"],
+    "The Rule of Three in Product Writing": ["Stripe", "Basecamp", "Linear", "Notion", "Loom", "Superhuman", "Figma"],
+    "Opportunity Scoring": ["Notion", "Figma", "Miro", "Linear", "Loom", "Superhuman", "Canva"],
+    "Type 1 vs Type 2 Decisions": ["Stripe", "Linear", "Figma", "Basecamp", "Notion", "Loom", "Intercom"],
+    "Narrative Fallacy in Specs": ["Quibi", "Google+", "Path", "Clubhouse", "Vine", "Google Wave", "Myspace"],
+    "The Curse of Knowledge in Product Writing": ["Stripe", "Twilio", "Figma", "Linear", "Notion", "Basecamp", "Loom"],
+    "Shape Up: Fixed Time, Variable Scope": ["Basecamp", "Linear", "Notion", "Figma", "Loom", "Superhuman", "Intercom"],
+    "Regret Minimization in Product Decisions": ["Stripe", "Figma", "Notion", "Linear", "Loom", "Superhuman", "Miro"],
+    "Adjacent Possible in Product Strategy": ["Figma", "Notion", "Canva", "Linear", "Loom", "Miro", "Superhuman"],
+    "Compound Improvement in Product Quality": ["Duolingo", "Strava", "Calm", "Linear", "Figma", "Notion", "Loom"],
+    "Scarcity and Urgency": ["Superhuman", "Clubhouse", "Notion", "Linear", "Figma", "Calm", "Loom"],
+}
+
+DEFAULT_POOL = ["Stripe", "Figma", "Notion", "Linear", "Loom", "Superhuman", "Basecamp", "Duolingo", "Canva", "Miro"]
+
+
 def generate_content(post_number=0):
     mm = pick_mental_model(post_number)
     tc = fetch_techcrunch_ai(3)
@@ -187,21 +217,26 @@ def generate_content(post_number=0):
     headlines = tc + hn
     headlines_str = "\n".join(f"- {h}" for h in headlines) if headlines else ""
 
+    # Pick a company from the model-specific pool, rotating by post_number
+    pool = COMPANY_POOLS.get(mm['model'], DEFAULT_POOL)
+    company_hint = pool[post_number % len(pool)]
+
     prompt = f"""{VOICE_PROMPT}
 
 NICHE: Mental models + product thinking + data.
 Every post must: name the mental model, show a real product company using it, end with real data.
-Never use the same company example twice in a row. Pick a fresh, specific example each time.
-Do not default to Amazon, Apple, or Netflix unless the example is genuinely the best one.
 
 Today's mental model:
 Model: {mm['model']}
 What it is: {mm['what']}
 
+Required company to use as your example: {company_hint}
+You must use {company_hint} as the company in this post. Find a real, specific example of {company_hint} applying this mental model to a product decision. If you don't know a specific example, construct a realistic and accurate one based on how {company_hint} actually operates.
+
 Your job:
-1. Pick a real product company or team that applied this mental model to a product decision. Be specific. Not the most obvious example.
-2. Explain exactly what they did. Name the product, the decision, the moment.
-3. End with real outcome data. A number that proves it worked or failed.
+1. First line: sharp observation that makes a PM stop scrolling. Create tension.
+2. Explain exactly what {company_hint} did. Name the product, the decision, the moment.
+3. End with real outcome data from {company_hint}. A number that lands.
 4. Optional: one line the reader can apply this week.
 
 {f"Recent context (use only if it genuinely fits):{chr(10)}{headlines_str}" if headlines_str else ""}
