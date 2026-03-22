@@ -187,16 +187,16 @@ PART 1 (hook, 1/2):
 - Open with a sharp, specific observation that creates tension. Make the reader need part 2.
 - Introduce the mental model idea without naming it yet.
 - End with a question or incomplete thought that pulls them to read on.
-- Under 280 characters. End with "(1/2)"
+- Under 280 characters. No numbering label.
 
 ---
 
-PART 2 (payoff, 2/2):
+PART 2 (payoff):
 - What {co['name']} actually did. Specific decision or moment.
 - Use a real number from the facts above. Let it land.
 - Name the mental model here.
 - One line the reader can apply this week.
-- Under 320 characters. End with "(2/2)"
+- Under 320 characters. No numbering label.
 
 No filler. No motivation. No dashes anywhere. No emojis.
 Output only the two post texts separated by ---, nothing else."""
