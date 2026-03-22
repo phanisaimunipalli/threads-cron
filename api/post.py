@@ -183,8 +183,9 @@ Output only the rewritten post, nothing else."""
 
 
 def generate_content():
-    mm  = random.choice(MENTAL_MODELS)
-    co  = random.choice(COMPANIES)
+    rng = random.SystemRandom()   # reads OS entropy every call — safe in reused containers
+    mm  = rng.choice(MENTAL_MODELS)
+    co  = rng.choice(COMPANIES)
 
     prompt = f"""{VOICE_PROMPT}
 
