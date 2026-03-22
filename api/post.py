@@ -163,27 +163,8 @@ def _gemini(prompt, temperature=0.8):
 
 # ── Content generation ────────────────────────────────────────────────────────
 
-def refine_draft(draft):
-    prompt = f"""You are a Threads engagement editor. Niche: mental models + product thinking + data.
-
-Original post:
-\"\"\"{draft}\"\"\"
-
-Rules:
-- Rewrite the opening line so a product thinker stops scrolling immediately.
-- Keep all three elements: named mental model, product decision, real data.
-- Keep the exact company name and numbers from the original. Do not change them.
-- Tighten every line. Remove anything that doesn't earn its place.
-- Under 400 characters total.
-- No emojis, no hashtags, no LinkedIn tone, no motivational filler.
-- NEVER use dashes anywhere. Use a period or line break instead.
-
-Output only the rewritten post, nothing else."""
-    return _gemini(prompt, temperature=0.7)
-
-
 def generate_content():
-    rng = random.SystemRandom()   # reads OS entropy every call — safe in reused containers
+    rng = random.SystemRandom()
     mm  = rng.choice(MENTAL_MODELS)
     co  = rng.choice(COMPANIES)
 
@@ -192,26 +173,47 @@ def generate_content():
 NICHE: Mental models + product thinking + data.
 
 Company: {co['name']}
-What you know about {co['name']}: {co['facts']}
+Facts about {co['name']}: {co['facts']}
 
-Mental model lens to apply: {mm['model']}
+Mental model: {mm['model']}
 What it means: {mm['what']}
 
-Write a Threads post about {co['name']} that illustrates the mental model above.
-Start from {co['name']}'s story. Use the facts above as your data source.
-Do NOT use Amazon, Apple, Netflix, or any other company. This post is about {co['name']} only.
+Write a 2-part Threads thread about {co['name']} that illustrates the mental model.
+This post is about {co['name']} only. Do NOT use Amazon, Apple, Netflix, or any other company.
 
-Structure:
-1. First line: sharp observation about {co['name']}'s product decision. Create tension.
-2. What {co['name']} actually did. Be specific.
-3. End with a real number from the facts above.
-4. Name the mental model naturally in the post. Don't force it as a label.
+Output exactly this format — two sections separated by "---":
 
-Under 400 characters. No filler. No motivation. No dashes anywhere.
-Output only the post text, nothing else."""
+PART 1 (hook, 1/2):
+- Open with a sharp, specific observation that creates tension. Make the reader need part 2.
+- Introduce the mental model idea without naming it yet.
+- End with a question or incomplete thought that pulls them to read on.
+- Under 280 characters. End with "(1/2)"
 
-    draft = _gemini(prompt, temperature=0.9)
-    return refine_draft(draft), mm["model"], co["name"]
+---
+
+PART 2 (payoff, 2/2):
+- What {co['name']} actually did. Specific decision or moment.
+- Use a real number from the facts above. Let it land.
+- Name the mental model here.
+- One line the reader can apply this week.
+- Under 320 characters. End with "(2/2)"
+
+No filler. No motivation. No dashes anywhere. No emojis.
+Output only the two post texts separated by ---, nothing else."""
+
+    raw = _gemini(prompt, temperature=0.9)
+
+    parts = [p.strip() for p in raw.split("---") if p.strip()]
+    if len(parts) >= 2:
+        part1, part2 = parts[0], parts[1]
+    else:
+        # fallback: split roughly in half
+        lines = raw.strip().splitlines()
+        mid = len(lines) // 2
+        part1 = "\n".join(lines[:mid]).strip()
+        part2 = "\n".join(lines[mid:]).strip()
+
+    return part1, part2, mm["model"], co["name"]
 
 
 # ── Threads ───────────────────────────────────────────────────────────────────
@@ -224,18 +226,36 @@ def _threads_post(url, data):
         return json.loads(r.read())
 
 
-def post_to_threads(text):
-    result = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads", {
+def post_to_threads(part1, part2):
+    # Publish root post
+    container = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads", {
         "media_type": "TEXT",
-        "text": text,
+        "text": part1,
         "access_token": THREADS_TOKEN,
     })
     time.sleep(2)
-    result = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish", {
-        "creation_id": result["id"],
+    root = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish", {
+        "creation_id": container["id"],
         "access_token": THREADS_TOKEN,
     })
-    return result["id"]
+    root_id = root["id"]
+
+    time.sleep(3)
+
+    # Publish reply (2/2) chained to root
+    reply_container = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads", {
+        "media_type": "TEXT",
+        "text": part2,
+        "reply_to_id": root_id,
+        "access_token": THREADS_TOKEN,
+    })
+    time.sleep(2)
+    _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish", {
+        "creation_id": reply_container["id"],
+        "access_token": THREADS_TOKEN,
+    })
+
+    return root_id
 
 
 # ── Handler ───────────────────────────────────────────────────────────────────
@@ -249,15 +269,16 @@ class handler(BaseHTTPRequestHandler):
             return
 
         try:
-            content, model_name, company_name = generate_content()
-            thread_id = post_to_threads(content)
+            part1, part2, model_name, company_name = generate_content()
+            thread_id = post_to_threads(part1, part2)
 
             self._respond(200, {
                 "ok": True,
                 "model": model_name,
                 "company": company_name,
                 "thread_id": thread_id,
-                "content": content,
+                "part1": part1,
+                "part2": part2,
             })
         except Exception as e:
             self._respond(500, {"ok": False, "error": str(e)})
