@@ -183,10 +183,15 @@ This post is about {co['name']} only. Do NOT use Amazon, Apple, Netflix, or any 
 
 Output exactly this format — two sections separated by "---":
 
-PART 1 (hook, 1/2):
-- Open with a sharp, specific observation that creates tension. Make the reader need part 2.
+PART 1 (hook):
+- Use one of these opening patterns (rotate, don't always pick the first):
+  a) Contrarian: "Most people think X. They're wrong."
+  b) Personal: "I [watched / made / spent] [specific thing] and learned something uncomfortable."
+  c) Number hook: "[Big number] people use [product]. Almost no one knows why it actually won."
+  d) Provocation: "You're [measuring / building / optimizing] the wrong thing."
+  e) Specific moment: "In [year], [company] made one change. [Group] hated it. [Metric] went up."
 - Introduce the mental model idea without naming it yet.
-- End with a question or incomplete thought that pulls them to read on.
+- End pulling the reader to continue. Question or cliffhanger.
 - Under 280 characters. No numbering label.
 
 ---
@@ -216,6 +221,9 @@ Output only the two post texts separated by ---, nothing else."""
     return part1, part2, mm["model"], co["name"]
 
 
+PART3 = "I post one mental model + product story every evening.\nFollow if that's useful."
+
+
 # ── Threads ───────────────────────────────────────────────────────────────────
 
 def _threads_post(url, data):
@@ -226,35 +234,29 @@ def _threads_post(url, data):
         return json.loads(r.read())
 
 
-def post_to_threads(part1, part2):
-    # Publish root post
-    container = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads", {
+def _create_and_publish(text, reply_to_id=None):
+    payload = {
         "media_type": "TEXT",
-        "text": part1,
+        "text": text,
         "access_token": THREADS_TOKEN,
-    })
+    }
+    if reply_to_id:
+        payload["reply_to_id"] = reply_to_id
+    container = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads", payload)
     time.sleep(2)
-    root = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish", {
+    result = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish", {
         "creation_id": container["id"],
         "access_token": THREADS_TOKEN,
     })
-    root_id = root["id"]
+    return result["id"]
 
+
+def post_to_threads(part1, part2):
+    root_id  = _create_and_publish(part1)
     time.sleep(3)
-
-    # Publish reply (2/2) chained to root
-    reply_container = _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads", {
-        "media_type": "TEXT",
-        "text": part2,
-        "reply_to_id": root_id,
-        "access_token": THREADS_TOKEN,
-    })
-    time.sleep(2)
-    _threads_post(f"{THREADS_API}/{THREADS_USER_ID}/threads_publish", {
-        "creation_id": reply_container["id"],
-        "access_token": THREADS_TOKEN,
-    })
-
+    reply_id = _create_and_publish(part2, reply_to_id=root_id)
+    time.sleep(3)
+    _create_and_publish(PART3, reply_to_id=reply_id)
     return root_id
 
 
