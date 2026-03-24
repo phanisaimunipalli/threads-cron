@@ -57,33 +57,35 @@ MENTAL_MODELS = [
 ]
 
 
-# ── Company Pool (with real data facts for Gemini to use) ─────────────────────
+# ── Company Pool ──────────────────────────────────────────────────────────────
+# Mass-recognition companies only. Each entry has a counterintuitive tension
+# baked in — a specific moment or decision that surprises people.
 
 COMPANIES = [
-    {"name": "Stripe", "facts": "$95B valuation. Writing clarity is a core hiring signal. API-first. Developer docs ranked best-in-class year over year."},
-    {"name": "Figma", "facts": "$400M ARR. Adobe acquisition offer at $10B. Real-time multiplayer was the core product bet. 4M+ designers."},
-    {"name": "Linear", "facts": "$35M ARR. Team under 50. NPS above 70 in developer tooling. Speed and simplicity as stated product principles."},
-    {"name": "Notion", "facts": "20M users. $10B valuation. Grew from near-zero in 5 years by targeting knowledge workers."},
-    {"name": "Duolingo", "facts": "500M users. 37M DAU. Runs 500+ A/B tests per year. Streak users retain at 2x rate. DAU grew from 10M to 37M in 3 years."},
-    {"name": "Superhuman", "facts": "$30/month for email. NPS of 58 vs Gmail's 1. Invite-only for 4 years. Built on rigorous user interview methodology."},
-    {"name": "Basecamp", "facts": "Profitable 20+ years. Under 60 employees. 3 million companies. Invented Shape Up. No VC, no growth team."},
-    {"name": "Intercom", "facts": "$150M ARR. Pioneer of Jobs to Be Done applied to B2B SaaS. Pivoted to AI-first customer support."},
-    {"name": "Slack", "facts": "$7B ARR. Acquired by Salesforce for $27.7B. Started as internal tool at gaming company Tiny Speck."},
-    {"name": "Shopify", "facts": "4M merchants. App ecosystem 8,000+ apps. Third-party developers earn 4x what Shopify earns from the platform."},
-    {"name": "Airbnb", "facts": "100M nights booked annually. Near-bankrupt in 2009. North star metric was nights booked, not revenue."},
-    {"name": "Spotify", "facts": "600M users. 30 min average daily listening. Runs bet-portfolio approach to product. Experiment velocity is a stated growth driver."},
-    {"name": "Buffer", "facts": "Founded with landing page test before a single line of code. $20M ARR bootstrapped. Transparent salary model."},
-    {"name": "GitHub", "facts": "100M developers. GitHub Actions used by 10M+. Acquired by Microsoft for $7.5B. Actions was not on original roadmap."},
-    {"name": "Dropbox", "facts": "Launched with demo video, 75K signups before code shipped. 700M registered users. Waitlist went from 5K to 75K overnight."},
-    {"name": "Quibi", "facts": "Raised $1.75B. Shut down in 6 months. Canonical product failure from narrative-driven decision making."},
-    {"name": "Instagram", "facts": "2B users. Hid like counts in 2019. DAU grew from 500M to 700M in two years after the change."},
-    {"name": "Discord", "facts": "200M users. Started for gamers, expanded to all communities. Free with Nitro premium. 19M daily active servers."},
-    {"name": "Canva", "facts": "150M users. $40B valuation. Democratized design for non-designers. 190 countries."},
-    {"name": "Zoom", "facts": "300M daily meeting participants at peak in 2020. Grew 30x in one year. Simplified one painful thing: joining a call."},
-    {"name": "HubSpot", "facts": "$2.2B revenue. Pioneered inbound marketing. 200K+ customers. Went from zero to IPO by teaching before selling."},
-    {"name": "Miro", "facts": "70M users. $17.5B valuation. Grew explosively during remote work shift by solving one job: real-time visual collaboration."},
-    {"name": "Loom", "facts": "Acquired by Atlassian for $975M. 25M users. Solved async video communication before it was a category."},
-    {"name": "Calm", "facts": "100M downloads. $2B valuation. Grew from simple sleep sounds to full mental wellness platform one adjacent step at a time."},
+    {"name": "Zoom", "tension": "Most people think Zoom won because of video quality. It won because joining a call required zero friction. Every competitor made you download something first.", "data": "300M daily participants at peak. Grew 30x in one year. Eric Yuan's original pitch was rejected by Cisco, WebEx's parent."},
+    {"name": "Slack", "tension": "Slack was not built as a product. It was a failed game studio's internal tool. They shipped the accident, not the game.", "data": "$7B ARR. Acquired for $27.7B. The game (Glitch) had 0 users at shutdown. Slack had thousands."},
+    {"name": "Instagram", "tension": "Instagram killed the feature everyone used most — public like counts. Creators were furious. Engagement went up.", "data": "DAU grew from 500M to 700M in two years after hiding likes. Ad revenue increased as authentic content outperformed viral."},
+    {"name": "Duolingo", "tension": "Duolingo deliberately made users feel anxious about losing their streak. The grief was the product. They A/B tested which notification made people feel worst.", "data": "500M users. Streak users retain at 2x rate. DAU grew from 10M to 37M in 3 years purely through behavioral design."},
+    {"name": "Notion", "tension": "Notion launched to almost no one and grew to 20M users with zero paid marketing. They let their own users build the growth engine.", "data": "20M users. $10B valuation. Template gallery — entirely user-generated — is their top acquisition channel."},
+    {"name": "Figma", "tension": "Every design tool in 2016 was a desktop app. Figma built in the browser when browsers were considered too slow for design. Everyone said it was technically impossible.", "data": "$400M ARR. Adobe offered $10B to acquire them. The browser bet is why they have real-time multiplayer and Adobe doesn't."},
+    {"name": "Airbnb", "tension": "Airbnb was near-bankrupt in 2009 and survived by selling novelty cereal boxes. The founders went door to door photographing listings themselves because they noticed bad photos killed bookings.", "data": "100M nights booked annually. $75B valuation. Professional photography became a product feature, not a marketing budget line."},
+    {"name": "Spotify", "tension": "Spotify convinced record labels it was saving the music industry while building a product that made owning music feel pointless.", "data": "600M users. 240M paid subscribers. Average user listens 30 min/day. Artists earn $0.003 per stream — the tension that never resolved."},
+    {"name": "Dropbox", "tension": "Dropbox validated a $10B product with a 3-minute video of software that did not exist. The demo was fake. The waitlist was real.", "data": "Waitlist went from 5K to 75K overnight. 700M registered users. Zero code existed when the first customer signed up."},
+    {"name": "Uber", "tension": "Uber's surge pricing launched to public outrage. Every PM instinct said remove it. They kept it. Supply went up. Wait times went down.", "data": "Surge pricing increased driver supply by 70-80% during peak demand. Uber operates in 70 countries. $31B revenue in 2023."},
+    {"name": "Twitter", "tension": "Twitter's 140-character limit was a technical constraint from SMS, not a product decision. The constraint became the product's identity.", "data": "350M users built their communication style around an arbitrary SMS limitation. The constraint drove more engagement than any feature they intentionally designed."},
+    {"name": "YouTube", "tension": "YouTube's recommendation algorithm optimized for watch time, not satisfaction. Users watched more and reported feeling worse. The metric won anyway.", "data": "2.7B monthly users. 500 hours of video uploaded per minute. Watch time optimization drove 70% of all views through recommendations."},
+    {"name": "WhatsApp", "tension": "WhatsApp had 5 engineers and 450M users when Facebook acquired it. They grew that large by doing almost nothing — no ads, no growth team, no analytics.", "data": "Acquired for $19B in 2014. Now 2B users. The team that built it was smaller than most companies' marketing departments."},
+    {"name": "TikTok", "tension": "TikTok's most powerful product decision was showing your content to strangers first, not your followers. Every other platform built around your social graph. TikTok ignored it.", "data": "1B+ users in 3 years. Average session 95 minutes/day. The For You page serves content before you follow anyone — zero friction to value."},
+    {"name": "Canva", "tension": "Every designer told Canva it was a toy for non-designers. That was exactly the point. They built for the person Photoshop ignored.", "data": "150M users. $40B valuation. 190 countries. Professional designers are a minority of their user base by design."},
+    {"name": "Shopify", "tension": "Shopify's biggest product bet was making it easier to compete with Amazon rather than partnering with it. They bet on independent commerce when everyone else was listing on marketplaces.", "data": "4M merchants. $7B annual revenue. Third-party app developers earn 4x what Shopify earns from the ecosystem."},
+    {"name": "GitHub", "tension": "Microsoft acquired GitHub for $7.5B and did almost nothing with it for two years. The product that eventually came — GitHub Actions — was not on the roadmap at acquisition.", "data": "100M developers. GitHub Actions used by 10M+. The best product decision post-acquisition was one they didn't plan."},
+    {"name": "Superhuman", "tension": "Superhuman charges $30/month for email and was invite-only for 4 years. The waitlist was the product. Scarcity created the perception of quality.", "data": "NPS of 58 vs Gmail's 1. $75M ARR. The invite wall had no technical reason — it was a positioning decision."},
+    {"name": "Stripe", "tension": "Stripe launched in 2010 when PayPal had already won payments. They won anyway by solving for developers instead of businesses.", "data": "$95B valuation. Powers 0.5% of global GDP in transactions. The API documentation is cited as a growth driver more than any sales motion."},
+    {"name": "Linear", "tension": "Linear entered a market dominated by Jira — a product 95% of engineers hate but every company uses. They won by making engineers actually want to open it.", "data": "$35M ARR. Team under 50. NPS above 70. The product has fewer features than Jira by design — every feature request is filtered through subtraction first."},
+    {"name": "Basecamp", "tension": "Basecamp removed features every year and got more profitable each time. In an industry that measures growth by adding, they grew by subtracting.", "data": "Profitable 20+ years. Under 60 employees. 3M companies. No VC funding ever taken. Shape Up methodology now used by teams at Linear, Pitch, and dozens of others."},
+    {"name": "Intercom", "tension": "Intercom's customers thought they were buying chat software. Intercom realized the job was closing a deal before the prospect left the page. The insight rewrote their entire roadmap.", "data": "$150M ARR. The pivot came from 20 customer interviews, not a data dashboard."},
+    {"name": "Snapchat", "tension": "Snapchat's disappearing messages were considered a privacy gimmick. The real product insight was that ephemerality made people post more honestly, not less.", "data": "375M daily users. Stories feature was copied by Instagram, WhatsApp, YouTube, and LinkedIn within 18 months — the clearest signal a product idea has won."},
+    {"name": "Pinterest", "tension": "Pinterest looked like a mood board app for recipes. It was actually a purchase intent engine. Users saved products they planned to buy, not just admire.", "data": "465M monthly users. Pinners are 7x more likely to purchase than non-pinners. $3B revenue driven almost entirely by shopping intent disguised as inspiration."},
 ]
 
 
@@ -173,35 +175,32 @@ def generate_content():
 NICHE: Mental models + product thinking + data.
 
 Company: {co['name']}
-Facts about {co['name']}: {co['facts']}
+The counterintuitive tension: {co['tension']}
+Real data: {co['data']}
 
 Mental model: {mm['model']}
 What it means: {mm['what']}
 
-Write a 2-part Threads thread about {co['name']} that illustrates the mental model.
-This post is about {co['name']} only. Do NOT use Amazon, Apple, Netflix, or any other company.
+Write a 2-part Threads thread using the tension above as your hook.
+This post is about {co['name']} only.
 
-Output exactly this format — two sections separated by "---":
+Output exactly two sections separated by "---":
 
 PART 1 (hook):
-- Use one of these opening patterns (rotate, don't always pick the first):
-  a) Contrarian: "Most people think X. They're wrong."
-  b) Personal: "I [watched / made / spent] [specific thing] and learned something uncomfortable."
-  c) Number hook: "[Big number] people use [product]. Almost no one knows why it actually won."
-  d) Provocation: "You're [measuring / building / optimizing] the wrong thing."
-  e) Specific moment: "In [year], [company] made one change. [Group] hated it. [Metric] went up."
-- Introduce the mental model idea without naming it yet.
-- End pulling the reader to continue. Question or cliffhanger.
-- Under 280 characters. No numbering label.
+- Open with the counterintuitive tension. Lead with what most people believe is wrong.
+- Use this pattern: "Most people think [X]. They're wrong." or "Everyone said [X]. [Company] did the opposite."
+- Do NOT name the mental model yet. Build the curiosity.
+- End with a cliffhanger or question that makes the reader need part 2.
+- Under 240 characters.
 
 ---
 
 PART 2 (payoff):
-- What {co['name']} actually did. Specific decision or moment.
-- Use a real number from the facts above. Let it land.
-- Name the mental model here.
-- One line the reader can apply this week.
-- Under 320 characters. No numbering label.
+- Reveal what {co['name']} actually did and why it worked.
+- Use a specific number from the data above. Let it land on its own line.
+- Name the mental model naturally — don't force it as a label.
+- Last line: one thing the reader can apply this week.
+- Under 320 characters.
 
 No filler. No motivation. No dashes anywhere. No emojis.
 Output only the two post texts separated by ---, nothing else."""
