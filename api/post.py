@@ -165,10 +165,37 @@ def _gemini(prompt, temperature=0.8):
 
 # ── Content generation ────────────────────────────────────────────────────────
 
+def get_recent_companies(n=2):
+    """Fetch last n root posts and return company names found in them."""
+    try:
+        url = f"{THREADS_API}/{THREADS_USER_ID}/threads?fields=text&limit=10&access_token={THREADS_TOKEN}"
+        req = urllib.request.urlopen(url, timeout=8)
+        posts = json.loads(req.read()).get("data", [])
+        used = set()
+        checked = 0
+        for post in posts:
+            text = post.get("text", "").lower()
+            for co in COMPANIES:
+                if co["name"].lower() in text:
+                    used.add(co["name"])
+                    break
+            else:
+                continue
+            checked += 1
+            if checked >= n:
+                break
+        return used
+    except Exception:
+        return set()
+
+
 def generate_content():
     rng = random.SystemRandom()
     mm  = rng.choice(MENTAL_MODELS)
-    co  = rng.choice(COMPANIES)
+
+    recent = get_recent_companies(n=2)
+    pool   = [c for c in COMPANIES if c["name"] not in recent] or COMPANIES
+    co     = rng.choice(pool)
 
     prompt = f"""{VOICE_PROMPT}
 
