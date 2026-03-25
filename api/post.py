@@ -226,8 +226,9 @@ PART 2 (payoff):
 - Reveal what {co['name']} actually did and why it worked.
 - Use a specific number from the data above. Let it land on its own line.
 - Name the mental model naturally — don't force it as a label.
-- Last line: one thing the reader can apply this week.
-- Under 320 characters.
+- One line the reader can apply this week.
+- Very last line exactly: "Follow for one mental model + product story every evening."
+- Under 400 characters.
 
 No filler. No motivation. No dashes anywhere. No emojis.
 Output only the two post texts separated by ---, nothing else."""
@@ -245,9 +246,6 @@ Output only the two post texts separated by ---, nothing else."""
         part2 = "\n".join(lines[mid:]).strip()
 
     return part1, part2, mm["model"], co["name"]
-
-
-PART3 = "I post one mental model + product story every evening.\nFollow if that's useful."
 
 
 # ── Threads ───────────────────────────────────────────────────────────────────
@@ -278,11 +276,9 @@ def _create_and_publish(text, reply_to_id=None):
 
 
 def post_to_threads(part1, part2):
-    root_id  = _create_and_publish(part1)
+    root_id = _create_and_publish(part1)
     time.sleep(3)
-    reply_id = _create_and_publish(part2, reply_to_id=root_id)
-    time.sleep(3)
-    _create_and_publish(PART3, reply_to_id=reply_id)
+    _create_and_publish(part2, reply_to_id=root_id)
     return root_id
 
 
