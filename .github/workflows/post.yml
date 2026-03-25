@@ -2,8 +2,8 @@ name: Post to Threads 2x Daily
 
 on:
   schedule:
-    - cron: "0 1 * * *"    # 6:00 PM PST
-    - cron: "0 3 * * *"    # 8:00 PM PST
+    - cron: "0 15 * * *"   # 7:00 AM PST
+    - cron: "0 5 * * *"    # 9:00 PM PST
   workflow_dispatch:         # manual trigger anytime
 
 jobs:
