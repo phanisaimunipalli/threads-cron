@@ -197,6 +197,8 @@ def generate_content():
     pool   = [c for c in COMPANIES if c["name"] not in recent] or COMPANIES
     co     = rng.choice(pool)
 
+    opener_index = int(time.time() / 3600) % 5  # cycles 0-4 hourly
+
     prompt = f"""{VOICE_PROMPT}
 
 NICHE: Mental models + product thinking + data.
@@ -207,6 +209,7 @@ Real data: {co['data']}
 
 Mental model: {mm['model']}
 What it means: {mm['what']}
+opener_index: {opener_index}
 
 Write a 2-part Threads thread using the tension above as your hook.
 This post is about {co['name']} only.
@@ -214,8 +217,12 @@ This post is about {co['name']} only.
 Output exactly two sections separated by "---":
 
 PART 1 (hook):
-- Open with the counterintuitive tension. Lead with what most people believe is wrong.
-- Use this pattern: "Most people think [X]. They're wrong." or "Everyone said [X]. [Company] did the opposite."
+- Pick ONE of these openers based on the random number {opener_index} (0-4):
+  0 → Contrarian: "Most people think [X]. They're wrong." or "Everyone said [X]. [Company] did the opposite."
+  1 → Personal observation: "I keep watching product teams [specific failure]. [Company] figured out why."
+  2 → Number hook: "[Specific number] people use [product]. Almost no one knows the real reason it won."
+  3 → Specific moment: "In [year], [company] made one decision. [Group] hated it. [Metric] went up [X]%."
+  4 → Provocation: "You're [measuring / building / prioritizing] the wrong thing. [Company] learned this [when/how]."
 - Do NOT name the mental model yet. Build the curiosity.
 - End with a cliffhanger or question that makes the reader need part 2.
 - Under 240 characters.
@@ -232,8 +239,6 @@ PART 2 (payoff):
 
 No filler. No motivation. No dashes anywhere. No emojis.
 Output only the two post texts separated by ---, nothing else."""
-
-    raw = _gemini(prompt, temperature=0.9)
 
     parts = [p.strip() for p in raw.split("---") if p.strip()]
     if len(parts) >= 2:
